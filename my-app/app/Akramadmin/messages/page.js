@@ -1,4 +1,7 @@
 "use client";
-export default function Page(){
-  return <div><h1 className="text-2xl font-bold mb-6">الرسائل</h1><div className="card p-6">لوحة تحكم <b>الرسائل</b> - إدارة كاملة مع CRUD و Toggle إظهار/إخفاء ورفع صور و Socket.io تحديث.<div className="mt-4 grid md:grid-cols-3 gap-4">{[1,2,3].map(i=><div key={i} className="border rounded-lg p-4">عنصر تجريبي {i} <label className="block mt-2 flex items-center gap-2"><input type="checkbox" defaultChecked className="accent-[#00BCD4]"/> مفعل</label></div>)}</div><button className="btn-primary mt-6">إضافة جديد</button></div></div>
+import {useEffect,useState} from "react"; import api from "../../../utils/api"; import DataTable from "../../../components/admin/ui/DataTable";
+export default function Messages(){
+  const [rows,setRows]=useState([]); const load=()=> api.get("/messages").then(r=>setRows(r.data)).catch(()=>{});
+  useEffect(()=>{load()},[]);
+  return <div><h1 className="text-2xl font-bold mb-4">رسائل التواصل</h1><DataTable columns={[{key:"name",label:"الاسم"},{key:"email",label:"البريد"},{key:"phone",label:"الهاتف"},{key:"message",label:"الرسالة"},{key:"createdAt",label:"التاريخ", render:v=> new Date(v).toLocaleString()}]} rows={rows} /></div>
 }
