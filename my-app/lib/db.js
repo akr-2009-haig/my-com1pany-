@@ -6,7 +6,7 @@ async function connectDB(){
   const uri=process.env.MONGODB_URI||"mongodb://localhost:27017/mycompany";
   if(!uri) throw new Error("MONGODB_URI missing");
   if(mongoose.connection.readyState===1) {cached=true; return mongoose.connection;}
-  await mongoose.connect(uri,{autoIndex:true});
+  await mongoose.connect(uri,{autoIndex:true, serverSelectionTimeoutMS:5000, socketTimeoutMS:10000});
   cached=true;
   console.log("MongoDB connected");
   return mongoose.connection;

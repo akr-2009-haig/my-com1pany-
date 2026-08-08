@@ -10,6 +10,9 @@ const helmet=require('helmet');
 const morgan=require('morgan');
 const connectDB=require('./lib/db');
 const { setIO }=require('./lib/socket');
+const { apiLimiter, securityMiddlewares }=require('./middleware/security');
+const blockCheck=require('./middleware/blockCheck');
+const maintenanceCheck=require('./middleware/maintenance');
 
 const dev=process.env.NODE_ENV!=='production';
 const port=parseInt(process.env.PORT||"3000",10);
@@ -18,12 +21,30 @@ const handle=app.getRequestHandler();
 
 app.prepare().then(()=>{
   const server=express();
-  server.use(helmet({contentSecurityPolicy:false, crossOriginEmbedderPolicy:false}));
-  server.use(cors({origin:true, credentials:true}));
+  server.set('trust proxy', 1);
+  server.use(helmet({
+    contentSecurityPolicy: dev ? false : {
+      directives:{
+        defaultSrc:["'self'"],
+        scriptSrc:["'self'","'unsafe-inline'","https://res.cloudinary.com"],
+        styleSrc:["'self'","'unsafe-inline'","https://fonts.googleapis.com"],
+        imgSrc:["'self'","data:","https:","blob:"],
+        connectSrc:["'self'","https:","wss:"],
+        fontSrc:["'self'","https://fonts.gstatic.com","data:"]
+      }
+    },
+    crossOriginEmbedderPolicy:false,
+    hsts:{maxAge:31536000, includeSubDomains:true, preload:true}
+  }));
+  server.use(cors({origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true, credentials:true}));
   server.use(express.json({limit:"10mb"}));
-  server.use(express.urlencoded({extended:true}));
+  server.use(express.urlencoded({extended:true, limit:"10mb"}));
   server.use(cookieParser());
   if(dev) server.use(morgan('dev'));
+  securityMiddlewares(server);
+  server.use(blockCheck);
+  server.use(maintenanceCheck);
+  server.use('/api/', apiLimiter);
 
   // Connect DB (non-blocking)
   connectDB().catch(e=> console.error("DB connect error",e.message));
@@ -53,6 +74,8 @@ app.prepare().then(()=>{
   server.use('/api/users', require('./routes/users.routes'));
   server.use('/api/upload', require('./routes/upload.routes'));
   server.use('/api/analytics', require('./routes/analytics.routes'));
+  server.use('/api/security', require('./routes/security.routes'));
+  server.use('/api/backup', require('./routes/backup.routes'));
 
   server.get('/api/health',(req,res)=> res.json({ok:true, time:new Date().toISOString()}));
 

@@ -28,7 +28,13 @@
     "zustand": "4.5.4",
     "helmet": "7.1.0",
     "morgan": "1.10.0",
-    "express-rate-limit": "7.2.0"
+    "express-rate-limit": "7.2.0",
+    "express-mongo-sanitize": "2.2.0",
+    "xss-clean": "0.1.4",
+    "hpp": "0.2.3",
+    "express-validator": "7.0.1",
+    "xss": "1.0.15",
+    "validator": "13.11.0"
   },
   "devDependencies": {
     "tailwindcss": "3.4.4",
