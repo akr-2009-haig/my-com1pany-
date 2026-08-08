@@ -1,19 +1,39 @@
-const BlockedIp=require('../models/BlockedIp');
-const mongoose=require('mongoose');
-async function blockCheck(req,res,next){
-  if(req.path==='/api/health') return next();
-  if(mongoose.connection.readyState!==1) return next();
-  const ip=req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  try{
-    const blocked=await BlockedIp.findOne({ip}).maxTimeMS(2000);
-    if(blocked){
-      if(blocked.expiresAt && new Date(blocked.expiresAt) < new Date()){
-        await BlockedIp.deleteOne({ip}).catch(()=>{});
-      } else {
-        return res.status(403).json({message:'Your IP has been blocked. Contact admin.'});
+const { collection, isReady } = require('../lib/datastore');
+const { clientIp } = require('../lib/helpers');
+
+const cache = new Map(); // ip -> { blocked, until }
+const TTL = 30 * 1000;
+
+async function blockCheck(req, res, next) {
+  if (!isReady()) return next();
+  if (req.path === '/api/health') return next();
+  const ip = clientIp(req);
+  if (!ip) return next();
+
+  const cached = cache.get(ip);
+  if (cached && cached.checkedAt > Date.now() - TTL) {
+    if (!cached.blocked) return next();
+  }
+
+  try {
+    const blocked = await collection('blockedips').findOne({ ip });
+    if (blocked) {
+      const expired = !blocked.permanent && blocked.expiresAt && new Date(blocked.expiresAt) < new Date();
+      if (expired) {
+        await collection('blockedips').deleteById(blocked._id).catch(() => {});
+        cache.set(ip, { blocked: false, checkedAt: Date.now() });
+        return next();
       }
+      cache.set(ip, { blocked: true, checkedAt: Date.now() });
+      if (req.path.startsWith('/api')) {
+        return res.status(403).json({ message: 'تم حظر عنوان الـ IP الخاص بك. يرجى التواصل مع الإدارة.' });
+      }
+      return res.status(403).send('<html dir="rtl"><body style="font-family:sans-serif;text-align:center;padding:80px"><h1>403</h1><p>تم حظر الوصول من عنوانك.</p></body></html>');
     }
-  }catch(e){}
-  next();
+    cache.set(ip, { blocked: false, checkedAt: Date.now() });
+  } catch (e) { /* fail open */ }
+  return next();
 }
-module.exports=blockCheck;
+
+blockCheck.invalidate = (ip) => cache.delete(ip);
+module.exports = blockCheck;

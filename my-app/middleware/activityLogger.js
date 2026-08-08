@@ -1,20 +1,30 @@
-const ActivityLog=require('../models/ActivityLog');
-function activityLogger(moduleName){
-  return async (req,res,next)=>{
-    const origJson=res.json.bind(res);
-    res.json=(body)=>{
-      // log only mutating methods
-      if(['POST','PUT','DELETE','PATCH'].includes(req.method) && res.statusCode<400){
-        ActivityLog.create({
-          user: req.user?.id, userName: req.user?.email||'system',
-          action: req.method+' '+req.originalUrl, module: moduleName||'general',
-          details: JSON.stringify({params:req.params, body: req.body}).slice(0,2000),
-          ip: req.ip, userAgent: req.headers['user-agent']
-        }).catch(()=>{});
+const { collection } = require('../lib/datastore');
+const { clientIp } = require('../lib/helpers');
+
+const ACTION_LABELS = { POST: 'إضافة', PUT: 'تعديل', PATCH: 'تعديل', DELETE: 'حذف' };
+
+/** Records every mutating admin request into the activity log. */
+function activityLogger(moduleName) {
+  return (req, res, next) => {
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
+    const originalJson = res.json.bind(res);
+    res.json = (body) => {
+      if (res.statusCode < 400 && req.user) {
+        const target = body && (body.title || body.name || body.question || body.email || body.label);
+        collection('activitylogs').create({
+          user: req.user.id,
+          userName: req.user.name || req.user.email,
+          action: `${ACTION_LABELS[req.method] || req.method} ${moduleName}`,
+          module: moduleName,
+          details: target ? String(target).slice(0, 200) : `${req.method} ${req.originalUrl}`,
+          ip: clientIp(req),
+          userAgent: req.headers['user-agent'] || '',
+        }).catch(() => {});
       }
-      return origJson(body);
+      return originalJson(body);
     };
-    next();
+    return next();
   };
 }
-module.exports=activityLogger;
+
+module.exports = activityLogger;

@@ -1,8 +1,51 @@
-"use client";
-import {useEffect,useState} from "react"; import api from "../../utils/api"; import PackageCard from "../shared/PackageCard";
-export default function PricingPreview(){
-  const [pkgs,setPkgs]=useState([]); const [yearly,setYearly]=useState(false);
-  useEffect(()=>{ api.get("/packages").then(r=> setPkgs(r.data.filter(p=>p.isActive))).catch(()=>{}); },[]);
-  const list=pkgs.length?pkgs:[{name:"الأساسية",priceMonthly:199,priceYearly:1990,features:[{text:"موقع متجاوب",included:true},{text:"دعم فني",included:false}]},{name:"الاحترافية",priceMonthly:399,priceYearly:3990,features:[{text:"كل المميزات",included:true}],isPopular:true},{name:"المميزة",priceMonthly:699,priceYearly:6990,features:[{text:"حلول مخصصة",included:true}]}];
-  return <section className="py-16 bg-[#f5f7fa]"><div className="max-w-7xl mx-auto px-4 text-center"><h2 className="text-3xl font-bold">الباقات والأسعار</h2><label className="inline-flex items-center gap-2 mt-4 bg-white border rounded-full p-1"><span className={yearly?"text-gray-400":"text-[#00BCD4] font-bold"}>شهري</span><input type="checkbox" checked={yearly} onChange={e=>setYearly(e.target.checked)} className="accent-[#00BCD4]"/><span className={yearly?"text-[#00BCD4] font-bold":"text-gray-400"}>سنوي</span></label><div className="grid md:grid-cols-3 gap-6 mt-8 text-right">{list.map(p=> <PackageCard key={p.name} pkg={p} yearly={yearly}/>)}</div></div></section>
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import SectionTitle from '../shared/SectionTitle';
+import PackageCard from '../shared/PackageCard';
+import PackageRequestModal from '../forms/PackageRequestModal';
+
+export default function PricingPreview({ packages = [], showToggle = true, alt = true }) {
+  const [yearly, setYearly] = useState(false);
+  const [selected, setSelected] = useState(null);
+  if (!packages.length) return null;
+
+  return (
+    <section className={alt ? 'section-alt' : 'section bg-white'}>
+      <div className="container-app">
+        <SectionTitle
+          eyebrow="الأسعار"
+          title="الباقات والأسعار"
+          text="باقات مرنة تناسب الشركات الناشئة والمؤسسات الكبيرة على حد سواء."
+        />
+
+        {showToggle && (
+          <div className="flex items-center justify-center gap-3.5 mb-11">
+            <span className={`text-sm font-semibold ${!yearly ? 'text-primary' : 'text-gray-400'}`}>شهري</span>
+            <button
+              type="button" role="switch" aria-checked={yearly} aria-label="التبديل بين الاشتراك الشهري والسنوي"
+              onClick={() => setYearly((v) => !v)}
+              className={`w-14 h-7 rounded-full p-1 transition-colors duration-300 ${yearly ? 'bg-primary' : 'bg-gray-300'}`}
+            >
+              <span className={`block w-5 h-5 rounded-full bg-white shadow transition-transform duration-300 ${yearly ? '-translate-x-7' : 'translate-x-0'}`} />
+            </button>
+            <span className={`text-sm font-semibold ${yearly ? 'text-primary' : 'text-gray-400'}`}>سنوي</span>
+          </div>
+        )}
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-7 items-stretch">
+          {packages.map((p) => (
+            <PackageCard key={p._id} pkg={p} yearly={yearly} onOrder={setSelected} />
+          ))}
+        </div>
+
+        <p className="text-center text-gray-500 text-sm mt-10">
+          تحتاج باقة مخصصة؟ <Link href="/contact" className="text-primary font-semibold hover:underline">تواصل معنا</Link>
+        </p>
+      </div>
+
+      <PackageRequestModal pkg={selected} yearly={yearly} onClose={() => setSelected(null)} />
+    </section>
+  );
 }

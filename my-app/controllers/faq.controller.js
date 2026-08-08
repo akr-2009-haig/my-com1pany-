@@ -1,7 +1,7 @@
-const Faq=require('../models/Faq');
-const emitEvent=require('../events/emitEvent');
-exports.getAll=async(req,res,next)=>{ try{ const data=await Faq.find().sort({order:1,createdAt:-1}); res.json(data);}catch(e){next(e)} };
-exports.getOne=async(req,res,next)=>{ try{ const doc=await Faq.findById(req.params.id); if(!doc) return res.status(404).json({message:"Not found"}); res.json(doc);}catch(e){next(e)} };
-exports.create=async(req,res,next)=>{ try{ const doc=await Faq.create(req.body); emitEvent('faq:updated',{action:"create",data:doc}); res.status(201).json(doc);}catch(e){next(e)} };
-exports.update=async(req,res,next)=>{ try{ const doc=await Faq.findByIdAndUpdate(req.params.id, req.body, {new:true}); if(!doc) return res.status(404).json({message:"Not found"}); emitEvent('faq:updated',{action:"update",data:doc}); res.json(doc);}catch(e){next(e)} };
-exports.remove=async(req,res,next)=>{ try{ const doc=await Faq.findByIdAndDelete(req.params.id); if(!doc) return res.status(404).json({message:"Not found"}); emitEvent('faq:updated',{action:"delete",id:req.params.id}); res.json({message:"Deleted"});}catch(e){next(e)} };
+const crud = require('./factory');
+module.exports = crud('faqs', {
+  event: 'faq:updated',
+  searchFields: ['question', 'answer'],
+  filters: ['category', { key: 'isActive', cast: 'boolean' }, { key: 'showOnPricing', cast: 'boolean' }],
+  populate: ['category'],
+});

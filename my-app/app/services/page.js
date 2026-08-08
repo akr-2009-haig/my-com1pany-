@@ -1,8 +1,44 @@
-"use client";
-import {useEffect,useState} from "react"; import api from "../../utils/api"; import ServiceCard from "../../components/shared/ServiceCard";
-import PageBanner from "../../components/shared/PageBanner";
-export default function ServicesPage(){
-  const [services,setServices]=useState([]);
-  useEffect(()=>{ api.get("/services").then(r=>setServices(r.data)).catch(()=>{}); },[]);
-  return <div><PageBanner title="خدماتنا" breadcrumb="الرئيسية > خدماتنا"/><div className="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-6">{services.map(s=> <ServiceCard key={s._id} service={s}/>)} {services.length===0 && [1,2,3,4,5,6].map(i=><div key={i} className="card p-6 h-56 flex flex-col justify-center items-center text-gray-400">خدمة تجريبية {i}</div>)}</div></div>;
+import { getBanner, getServices, getSettings } from '../../lib/data';
+import PageBanner from '../../components/shared/PageBanner';
+import ServiceCard from '../../components/shared/ServiceCard';
+import EmptyState from '../../components/shared/EmptyState';
+import Reveal from '../../components/shared/Reveal';
+import CtaSection from '../../components/home/CtaSection';
+
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata() {
+  const s = await getSettings();
+  return { title: 'خدماتنا', description: `الخدمات البرمجية التي تقدمها ${s.siteName}` };
+}
+
+export default async function ServicesPage() {
+  const [services, banner] = await Promise.all([getServices({ limit: 0 }), getBanner('services')]);
+
+  return (
+    <>
+      <PageBanner
+        title={banner?.title || 'خدماتنا'}
+        subtitle={banner?.subtitle || 'حلول برمجية متكاملة تغطي دورة حياة منتجك الرقمي بالكامل'}
+        image={banner?.image}
+        breadcrumb={[{ label: 'الخدمات' }]}
+      />
+
+      <section className="section bg-white">
+        <div className="container-app">
+          {services.length ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {services.map((s, i) => (
+                <Reveal key={s._id} delay={i * 60}><ServiceCard service={s} /></Reveal>
+              ))}
+            </div>
+          ) : (
+            <EmptyState title="لا توجد خدمات منشورة بعد" text="سيتم إضافة الخدمات قريباً." />
+          )}
+        </div>
+      </section>
+
+      <CtaSection data={{ heading: 'لم تجد ما تبحث عنه؟', text: 'نصمّم حلولاً مخصّصة تماماً حسب احتياج عملك.', btn1Text: 'تواصل معنا', btn1Link: '/contact', btn2Text: 'اطلب عرض سعر', btn2Link: '/quote' }} />
+    </>
+  );
 }

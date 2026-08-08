@@ -1,7 +1,17 @@
 node_modules
 .next
+out
+build
+dist
+.DS_Store
+*.log
+npm-debug.log*
+
+# local env
 .env
 .env.local
-backups
-*.log
-dist
+.env*.local
+
+# runtime data (embedded store, uploads, backups)
+/data
+/public/uploads

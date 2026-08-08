@@ -1,1 +1,10 @@
-export default function SectionTitle({sub,title,desc}){ return <div className="text-center mb-8"><p className="text-[#00BCD4]">{sub}</p><h2 className="text-3xl font-bold">{title}</h2><div className="w-16 h-1 bg-[#00BCD4] mx-auto mt-2"></div>{desc && <p className="text-gray-500 mt-3">{desc}</p>}</div> }
+export default function SectionTitle({ eyebrow, title, text, center = true, light = false, className = '' }) {
+  return (
+    <div className={`${center ? 'text-center mx-auto max-w-2xl' : ''} mb-12 ${className}`}>
+      {eyebrow && <p className={`eyebrow mb-2 ${light ? 'text-white/80' : ''}`}>{eyebrow}</p>}
+      {title && <h2 className={`heading mb-4 ${light ? '!text-white' : ''}`}>{title}</h2>}
+      <div className={`divider-line ${center ? 'mx-auto' : ''} ${light ? 'bg-white' : ''}`} />
+      {text && <p className={`mt-5 leading-relaxed ${light ? 'text-white/80' : 'text-gray-500'}`}>{text}</p>}
+    </div>
+  );
+}

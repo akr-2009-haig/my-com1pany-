@@ -1,7 +1,22 @@
-const MenuItem=require('../models/MenuItem');
-const emitEvent=require('../events/emitEvent');
-exports.getAll=async(req,res,next)=>{ try{ const data=await MenuItem.find().sort({order:1,createdAt:-1}); res.json(data);}catch(e){next(e)} };
-exports.getOne=async(req,res,next)=>{ try{ const doc=await MenuItem.findById(req.params.id); if(!doc) return res.status(404).json({message:"Not found"}); res.json(doc);}catch(e){next(e)} };
-exports.create=async(req,res,next)=>{ try{ const doc=await MenuItem.create(req.body); emitEvent('menus:updated',{action:"create",data:doc}); res.status(201).json(doc);}catch(e){next(e)} };
-exports.update=async(req,res,next)=>{ try{ const doc=await MenuItem.findByIdAndUpdate(req.params.id, req.body, {new:true}); if(!doc) return res.status(404).json({message:"Not found"}); emitEvent('menus:updated',{action:"update",data:doc}); res.json(doc);}catch(e){next(e)} };
-exports.remove=async(req,res,next)=>{ try{ const doc=await MenuItem.findByIdAndDelete(req.params.id); if(!doc) return res.status(404).json({message:"Not found"}); emitEvent('menus:updated',{action:"delete",id:req.params.id}); res.json({message:"Deleted"});}catch(e){next(e)} };
+const crud = require('./factory');
+const { collection } = require('../lib/datastore');
+
+const base = crud('menus', {
+  event: 'menus:updated',
+  searchFields: ['title', 'url'],
+  filters: ['location', { key: 'isActive', cast: 'boolean' }],
+  defaultSort: { order: 1 },
+});
+
+/** Returns menu items nested one level deep (for dropdowns). */
+base.tree = async (req, res, next) => {
+  try {
+    const location = req.query.location || 'header';
+    const items = await collection('menus').find({ location, isActive: true }, { sort: { order: 1 }, limit: 0 });
+    const roots = items.filter((i) => !i.parent);
+    const data = roots.map((r) => ({ ...r, children: items.filter((i) => String(i.parent) === String(r._id)) }));
+    res.json({ data });
+  } catch (e) { next(e); }
+};
+
+module.exports = base;

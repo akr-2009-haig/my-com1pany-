@@ -1,14 +1,53 @@
-"use client";
-import {useEffect,useState} from "react"; import api from "../../utils/api"; import ProjectCard from "../shared/ProjectCard";
-export default function PortfolioPreview(){
-  const [projects,setProjects]=useState([]);
-  useEffect(()=>{ api.get("/projects").then(r=> setProjects(r.data.filter(p=>p.isFeatured||p.isActive).slice(0,6))).catch(()=>{}); },[]);
-  const list=projects.length?projects:[1,2,3,4,5,6].map(i=>({ _id:i,title:"مشروع "+i, category:{name:"مواقع"}, image:"https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600" }));
-  return <section className="py-16 bg-[#f5f7fa]">
-    <div className="max-w-7xl mx-auto px-4">
-      <div className="text-center mb-8"><p className="text-[#00BCD4]">أعمالنا</p><h2 className="text-3xl font-bold">أحدث المشاريع</h2></div>
-      <div className="grid md:grid-cols-3 gap-6">{list.map(p=> <ProjectCard key={p._id} project={p}/>)}</div>
-      <div className="text-center mt-8"><a href="/portfolio" className="btn-primary">جميع المشاريع</a></div>
-    </div>
-  </section>
+'use client';
+
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import SectionTitle from '../shared/SectionTitle';
+import ProjectCard from '../shared/ProjectCard';
+
+export default function PortfolioPreview({ projects = [], categories = [] }) {
+  const [active, setActive] = useState('');
+  if (!projects.length) return null;
+
+  const used = categories.filter((c) => projects.some((p) => String(p.category?._id || p.category) === String(c._id)));
+  const list = useMemo(
+    () => (active ? projects.filter((p) => String(p.category?._id || p.category) === active) : projects),
+    [active, projects],
+  );
+
+  const cls = (on) => `px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300
+    ${on ? 'bg-primary text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:border-primary hover:text-primary'}`;
+
+  return (
+    <section className="section-alt">
+      <div className="container-app">
+        <SectionTitle
+          eyebrow="أعمالنا"
+          title="أحدث المشاريع"
+          text="نماذج من مشاريع سلّمناها لعملائنا في قطاعات مختلفة."
+        />
+
+        {used.length > 0 && (
+          <div className="flex flex-wrap items-center justify-center gap-2.5 mb-10">
+            <button type="button" onClick={() => setActive('')} className={cls(!active)}>الكل</button>
+            {used.map((c) => (
+              <button key={c._id} type="button" onClick={() => setActive(String(c._id))} className={cls(active === String(c._id))}>
+                {c.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {list.map((p) => (
+            <div key={p._id} className="animate-fadeIn"><ProjectCard project={p} /></div>
+          ))}
+        </div>
+
+        <div className="text-center mt-12">
+          <Link href="/portfolio" className="btn-primary">جميع المشاريع</Link>
+        </div>
+      </div>
+    </section>
+  );
 }
