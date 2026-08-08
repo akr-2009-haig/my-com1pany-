@@ -1,0 +1,1 @@
+"use client"; export default function Pagination({page,total,onChange}){ return <div className="flex gap-2 justify-center mt-6">{Array.from({length:total},(_,i)=> <button key={i} onClick={()=>onChange(i+1)} className={`w-8 h-8 rounded ${page===i+1?'bg-[#00BCD4] text-white':'bg-white border'}`}>{i+1}</button>)}</div> }

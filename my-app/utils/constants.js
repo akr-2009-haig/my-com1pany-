@@ -1,0 +1,1 @@
+export const COLORS={ primary:"#00BCD4", primaryDark:"#00ACC1", dark:"#1a1a2e", light:"#f5f7fa" }; export const API_URL= process.env.NEXT_PUBLIC_API_URL || "/api";

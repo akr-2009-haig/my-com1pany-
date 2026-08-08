@@ -1,0 +1,1 @@
+export default function SectionTitle({sub,title,desc}){ return <div className="text-center mb-8"><p className="text-[#00BCD4]">{sub}</p><h2 className="text-3xl font-bold">{title}</h2><div className="w-16 h-1 bg-[#00BCD4] mx-auto mt-2"></div>{desc && <p className="text-gray-500 mt-3">{desc}</p>}</div> }

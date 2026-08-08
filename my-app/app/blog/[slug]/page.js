@@ -1,0 +1,1 @@
+"use client"; import {useParams} from "next/navigation"; export default function PostDetail(){ const {slug}=useParams(); return <div className="max-w-4xl mx-auto px-4 py-16"><h1 className="text-3xl font-bold">مقال: {slug}</h1><article className="prose mt-6">محتوى المقال من محرر WYSIWYG مع مشاركة وتعليقات</article></div> }

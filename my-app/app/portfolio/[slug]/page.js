@@ -1,0 +1,1 @@
+"use client"; import {useParams} from "next/navigation"; export default function ProjectDetail(){ const {slug}=useParams(); return <div className="max-w-7xl mx-auto px-4 py-16"><h1 className="text-3xl font-bold">مشروع: {slug}</h1></div> }

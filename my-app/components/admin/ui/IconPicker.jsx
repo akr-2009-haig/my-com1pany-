@@ -1,0 +1,1 @@
+export default function IconPicker({value,onChange}){ return <div className="grid grid-cols-8 gap-2">{["🚀","⭐","📁","👨‍💻","🛠️","💼","💰","📰"].map(ic=> <button key={ic} onClick={()=>onChange(ic)} className={`p-2 border rounded ${value===ic?'bg-[#00BCD4] text-white':''}`}>{ic}</button>)}</div> }

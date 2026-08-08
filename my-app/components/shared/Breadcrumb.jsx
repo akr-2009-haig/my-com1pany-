@@ -1,0 +1,1 @@
+export default function Breadcrumb({items}){ return <div className="text-sm text-gray-500">{items?.join(" > ")}</div> }
