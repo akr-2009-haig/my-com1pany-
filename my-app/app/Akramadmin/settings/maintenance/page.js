@@ -1,1 +1,22 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">maintenance</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة maintenance مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import SettingsSection from '../../../../components/admin/crud/SettingsSection';
+
+export default function MaintenanceSettingsPage() {
+  return (
+    <SettingsSection
+      group="maintenance"
+      title="وضع الصيانة"
+      subtitle="عند التفعيل يرى الزوار صفحة صيانة، بينما تبقى لوحة التحكم متاحة لك"
+      breadcrumbLabel="وضع الصيانة"
+      defaults={{ enabled: false, title: 'الموقع تحت الصيانة', message: '', image: '', returnDate: '' }}
+      fields={[
+        { name: 'enabled', label: 'تفعيل وضع الصيانة', type: 'toggle', cols: 2 },
+        { name: 'title', label: 'عنوان الصفحة', cols: 2 },
+        { name: 'message', label: 'نص الرسالة', type: 'textarea', rows: 4, cols: 2 },
+        { name: 'image', label: 'صورة الصيانة', type: 'image', folder: 'pages' },
+        { name: 'returnDate', label: 'موعد العودة المتوقع', type: 'datetime-local' },
+      ]}
+    />
+  );
+}

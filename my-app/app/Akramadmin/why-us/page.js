@@ -1,8 +1,36 @@
-"use client";
-import {useEffect,useState} from "react"; import api from "../../../utils/api"; import ToggleSwitch from "../../../components/admin/ui/ToggleSwitch";
-export default function WhyUs(){
-  const [visible,setVisible]=useState(true);
-  useEffect(()=>{ api.get("/sections").then(r=>{ const s=r.data.find(x=>x.key==="whyus"); if(s) setVisible(s.isVisible); }).catch(()=>{}); },[]);
-  const save=async()=>{ const secs=await api.get("/sections"); const s=secs.data.find(x=>x.key==="whyus"); if(s) await api.put("/sections/"+s._id,{isVisible:visible}); alert("تم الحفظ"); };
-  return <div className="space-y-4"><h1 className="text-2xl font-bold">لماذا تختارنا</h1><div className="card p-6 max-w-xl space-y-3"><label className="flex gap-2"><ToggleSwitch checked={visible} onChange={setVisible} /> إظهار القسم</label><input placeholder="عنوان الميزة 1" className="border w-full p-2 rounded" /><input placeholder="وصف الميزة" className="border w-full p-2 rounded" /><button className="border px-3 py-1 rounded">+ إضافة ميزة</button><button onClick={save} className="btn-primary">حفظ</button></div></div>
+'use client';
+
+import PageEditor from '../../../components/admin/crud/PageEditor';
+
+export default function WhyUsPage() {
+  return (
+    <PageEditor
+      pageKey="whyus"
+      title="قسم «لماذا تختارنا»"
+      subtitle="المزايا التنافسية التي تظهر في الصفحة الرئيسية"
+      breadcrumb={[{ label: 'الصفحة الرئيسية' }, { label: 'لماذا تختارنا' }]}
+      previewHref="/#whyus"
+      withTitle={false}
+      defaults={{ eyebrow: 'لماذا نحن', heading: '', text: '', image: '', features: [], isVisible: true }}
+      dataFields={[
+        { name: 'isVisible', label: 'إظهار القسم في الرئيسية', type: 'toggle', default: true, cols: 2 },
+        { name: 'eyebrow', label: 'النص العلوي الصغير', placeholder: 'لماذا نحن' },
+        { name: 'heading', label: 'العنوان الرئيسي', placeholder: 'لماذا تختار شركتنا؟' },
+        { name: 'text', label: 'وصف مختصر', type: 'textarea', rows: 4, cols: 2 },
+        { name: 'image', label: 'صورة جانبية (اختياري)', type: 'image', folder: 'home', cols: 2 },
+        {
+          name: 'features',
+          label: 'المزايا',
+          type: 'list',
+          cols: 2,
+          addLabel: 'إضافة ميزة',
+          fields: [
+            { key: 'icon', label: 'الأيقونة', type: 'icon' },
+            { key: 'title', label: 'العنوان', type: 'text' },
+            { key: 'desc', label: 'الوصف', type: 'textarea' },
+          ],
+        },
+      ]}
+    />
+  );
 }

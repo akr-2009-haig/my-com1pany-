@@ -1,32 +1,59 @@
-"use client";
-import {useEffect,useState} from "react"; import api from "../../../utils/api"; import DataTable from "../../../components/admin/ui/DataTable"; import ConfirmModal from "../../../components/admin/ui/ConfirmModal"; import Toast from "../../../components/admin/ui/Toast"; import ToggleSwitch from "../../../components/admin/ui/ToggleSwitch";
-export default function Page(){
-  const [rows,setRows]=useState([]); const [loading,setLoading]=useState(true); const [showForm,setShowForm]=useState(false); const [form,setForm]=useState({}); const [editId,setEditId]=useState(null); const [delId,setDelId]=useState(null); const [toast,setToast]=useState("");
-  const load=()=> api.get("/faq").then(r=>setRows(Array.isArray(r.data)?r.data:r.data?.data||[])).catch(()=>{}).finally(()=>setLoading(false));
-  useEffect(()=>{load();},[]);
-  const save=async()=>{
-    try{
-      if(editId) await api.put("/faq/"+editId, form);
-      else await api.post("/faq", form);
-      setToast("تم الحفظ"); setShowForm(false); setForm({}); setEditId(null); load();
-      setTimeout(()=>setToast(""),2000);
-    }catch(e){ alert(e.response?.data?.message||"خطأ"); }
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { Folder } from 'lucide-react';
+import CrudPage from '../../../components/admin/crud/CrudPage';
+import api from '../../../utils/api';
+import { ADMIN_BASE } from '../../../utils/constants';
+
+export default function FaqPage() {
+  const [cats, setCats] = useState([]);
+  useEffect(() => {
+    api.get('/faq-categories', { params: { limit: 0 } }).then((r) => setCats(r.data?.data || [])).catch(() => {});
+  }, []);
+
+  const catName = (c) => {
+    if (!c) return '—';
+    if (typeof c === 'object') return c.name || '—';
+    return cats.find((x) => String(x._id) === String(c))?.name || '—';
   };
-  const del=async()=>{ await api.delete("/faq/"+delId); setDelId(null); load(); setToast("تم الحذف"); setTimeout(()=>setToast(""),2000); };
-  const baseCols=[{"key": "question", "label": "السؤال"}, {"key": "isActive", "label": "الحالة"}];
-  const cols=baseCols.map(c=> ({...c, render: c.key==="isActive" ? (v,row)=> <ToggleSwitch checked={!!v} onChange={async(val)=>{ await api.put("/faq/"+row._id,{isActive:val}); load();}} /> : undefined }));
-  if(loading) return <div className="p-8 text-center">جاري التحميل...</div>;
-  return <div className="space-y-4">
-    <div className="flex justify-between items-center"><h1 className="text-2xl font-bold">الأسئلة الشائعة</h1><button onClick={()=>{setForm({});setEditId(null);setShowForm(true);}} className="btn-primary">+ إضافة</button></div>
-    <DataTable columns={[...cols, {key:"actions", label:"إجراءات", render:(_,row)=> <div className="flex gap-2"><button onClick={()=>{setForm(row);setEditId(row._id);setShowForm(true);}} className="text-blue-600">تعديل</button><button onClick={()=>setDelId(row._id)} className="text-red-600">حذف</button></div>}]} rows={rows} />
-    {showForm && <div className="fixed inset-0 bg-black/40 grid place-items-center z-50 p-4"><div className="bg-white rounded-xl p-6 w-full max-w-lg space-y-3">
-      <h3 className="font-bold">{editId?"تعديل":"إضافة"} الأسئلة الشائعة</h3>
-      <input value={form.question||""} onChange={e=>setForm({...form,question:e.target.value})} placeholder="السؤال" className="border w-full p-3 rounded-lg" />
-      <input value={form.answer||""} onChange={e=>setForm({...form,answer:e.target.value})} placeholder="الجواب" className="border w-full p-3 rounded-lg" />
-      <label className="flex items-center gap-2"><ToggleSwitch checked={!!form.isActive} onChange={v=>setForm({...form,isActive:v})} /> مفعل</label>
-      <div className="flex gap-2 justify-end"><button onClick={()=>setShowForm(false)} className="px-4 py-2 border rounded">إلغاء</button><button onClick={save} className="btn-primary">حفظ</button></div>
-    </div></div>}
-    <ConfirmModal open={!!delId} title="هل أنت متأكد من الحذف؟" onConfirm={del} onCancel={()=>setDelId(null)} />
-    <Toast message={toast} />
-  </div>
+
+  return (
+    <CrudPage
+      endpoint="/faqs"
+      module="faq"
+      title="الأسئلة الشائعة"
+      subtitle="الأسئلة المعروضة في صفحة الأسئلة الشائعة وصفحة الأسعار"
+      breadcrumb={[{ label: 'الصفحات' }, { label: 'الأسئلة الشائعة' }]}
+      addLabel="إضافة سؤال"
+      reorderable
+      modalSize="lg"
+      dragTitle={(r) => r.question}
+      defaults={{ question: '', answer: '', category: '', showOnPricing: false, isActive: true }}
+      filters={[{ key: 'category', label: 'كل التصنيفات', options: cats.map((c) => ({ value: c._id, label: c.name })) }]}
+      extraHeaderActions={(
+        <Link href={`${ADMIN_BASE}/faq/categories`} className="btn btn-sm bg-white border border-gray-200 text-gray-700 hover:border-primary hover:text-primary">
+          <Folder className="w-4 h-4" /> التصنيفات
+        </Link>
+      )}
+      columns={[
+        { key: 'question', label: 'السؤال', sortable: true, render: (r) => <span className="font-semibold text-dark line-clamp-2 max-w-md block">{r.question}</span> },
+        { key: 'answer', label: 'الإجابة', render: (r) => <span className="text-gray-500 text-xs line-clamp-2 max-w-md block">{r.answer}</span> },
+        { key: 'category', label: 'التصنيف', width: '140px', render: (r) => <span className="badge-blue">{catName(r.category)}</span> },
+        { key: 'showOnPricing', label: 'بصفحة الأسعار', width: '110px', render: (r) => (r.showOnPricing ? <span className="badge-green">نعم</span> : <span className="text-gray-300">—</span>) },
+        { key: 'order', label: 'الترتيب', sortable: true, width: '80px' },
+      ]}
+      toForm={(r) => ({ ...r, category: r.category && typeof r.category === 'object' ? r.category._id : (r.category || '') })}
+      fields={[
+        { name: 'question', label: 'السؤال', required: true, cols: 2 },
+        { name: 'answer', label: 'الإجابة', type: 'textarea', rows: 6, required: true, cols: 2 },
+        { name: 'category', label: 'التصنيف', type: 'select', placeholder: 'بدون تصنيف', options: cats.map((c) => ({ value: c._id, label: c.name })) },
+        { name: 'showOnPricing', label: 'إظهاره في صفحة الأسعار', type: 'toggle' },
+        { name: 'questionEn', label: 'السؤال (EN)', dir: 'ltr', cols: 2 },
+        { name: 'answerEn', label: 'الإجابة (EN)', type: 'textarea', rows: 4, dir: 'ltr', cols: 2 },
+        { name: 'isActive', label: 'مفعّل', type: 'toggle', default: true },
+      ]}
+    />
+  );
 }

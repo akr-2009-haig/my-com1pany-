@@ -5,6 +5,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import WhatsappButton from '../components/layout/WhatsappButton';
 import ScrollToTop from '../components/layout/ScrollToTop';
+import PublicChrome from '../components/layout/PublicChrome';
 import { ToastProvider } from '../components/shared/ToastProvider';
 import RealtimeRefresher from '../components/shared/RealtimeRefresher';
 
@@ -72,12 +73,19 @@ export default async function RootLayout({ children }) {
         ) : null}
 
         <ToastProvider>
-          <Header settings={settings} />
-          <main className="flex-1">{children}</main>
-          <Footer settings={settings} />
-          <WhatsappButton settings={settings} />
-          <ScrollToTop />
-          <RealtimeRefresher />
+          <PublicChrome
+            header={<Header settings={settings} />}
+            footer={<Footer settings={settings} />}
+            extras={(
+              <>
+                <WhatsappButton settings={settings} />
+                <ScrollToTop />
+                <RealtimeRefresher />
+              </>
+            )}
+          >
+            {children}
+          </PublicChrome>
         </ToastProvider>
 
         {seo.ga ? (

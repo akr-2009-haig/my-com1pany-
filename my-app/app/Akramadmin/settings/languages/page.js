@@ -1,1 +1,24 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">languages</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة languages مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import SettingsSection from '../../../../components/admin/crud/SettingsSection';
+
+export default function LanguagesSettingsPage() {
+  return (
+    <SettingsSection
+      group="languages"
+      title="إعدادات اللغات"
+      subtitle="تفعيل الموقع ثنائي اللغة واختيار اللغة الافتراضية"
+      breadcrumbLabel="اللغات"
+      defaults={{ bilingual: false, defaultLang: 'ar' }}
+      fields={[
+        { name: 'bilingual', label: 'تفعيل الموقع ثنائي اللغة (عربي/إنجليزي)', type: 'toggle' },
+        {
+          name: 'defaultLang',
+          label: 'اللغة الافتراضية',
+          type: 'select',
+          options: [{ value: 'ar', label: 'العربية (RTL)' }, { value: 'en', label: 'English (LTR)' }],
+        },
+      ]}
+    />
+  );
+}

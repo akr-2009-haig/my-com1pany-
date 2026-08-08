@@ -1,1 +1,28 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">whatsapp</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة whatsapp مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import SettingsSection from '../../../../components/admin/crud/SettingsSection';
+
+export default function WhatsappSettingsPage() {
+  return (
+    <SettingsSection
+      group="whatsappSettings"
+      title="زر واتساب العائم"
+      subtitle="الزر الظاهر في جميع صفحات الموقع للتواصل السريع"
+      breadcrumbLabel="زر واتساب"
+      defaults={{ enabled: true, number: '', welcomeMessage: '', tooltip: '', showTooltip: true, position: 'left' }}
+      fields={[
+        { name: 'enabled', label: 'تفعيل الزر', type: 'toggle', default: true },
+        { name: 'number', label: 'رقم واتساب', dir: 'ltr', placeholder: '966500000000', hint: 'رمز الدولة بدون + أو مسافات' },
+        { name: 'welcomeMessage', label: 'الرسالة الافتراضية', type: 'textarea', rows: 3, cols: 2 },
+        { name: 'tooltip', label: 'نص التلميح', placeholder: 'تحتاج مساعدة؟' },
+        { name: 'showTooltip', label: 'إظهار التلميح', type: 'toggle', default: true },
+        {
+          name: 'position',
+          label: 'موضع الزر',
+          type: 'select',
+          options: [{ value: 'left', label: 'أسفل اليسار' }, { value: 'right', label: 'أسفل اليمين' }],
+        },
+      ]}
+    />
+  );
+}

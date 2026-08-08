@@ -1,1 +1,25 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">seo</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة seo مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import SettingsSection from '../../../../components/admin/crud/SettingsSection';
+
+export default function SeoSettingsPage() {
+  return (
+    <SettingsSection
+      group="seo"
+      title="تحسين محركات البحث (SEO)"
+      subtitle="العناوين والأوصاف الافتراضية وأكواد التتبع"
+      breadcrumbLabel="SEO"
+      defaults={{ title: '', description: '', keywords: '', ogImage: '', ga: '', gtm: '', pixel: '', robots: '' }}
+      fields={[
+        { name: 'title', label: 'عنوان الموقع الافتراضي', cols: 2, hint: '50 - 60 حرفاً' },
+        { name: 'description', label: 'الوصف الافتراضي', type: 'textarea', rows: 3, cols: 2, hint: '150 - 160 حرفاً' },
+        { name: 'keywords', label: 'الكلمات المفتاحية (مفصولة بفاصلة)', cols: 2 },
+        { name: 'ogImage', label: 'صورة المشاركة (Open Graph)', type: 'image', folder: 'seo', cols: 2, uploadHint: 'المقاس المفضل 1200×630' },
+        { name: 'ga', label: 'Google Analytics ID', dir: 'ltr', placeholder: 'G-XXXXXXX' },
+        { name: 'gtm', label: 'Google Tag Manager ID', dir: 'ltr', placeholder: 'GTM-XXXXXXX' },
+        { name: 'pixel', label: 'Facebook Pixel ID', dir: 'ltr' },
+        { name: 'robots', label: 'محتوى robots.txt', type: 'textarea', rows: 5, dir: 'ltr', cols: 2 },
+      ]}
+    />
+  );
+}

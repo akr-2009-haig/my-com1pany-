@@ -1,1 +1,24 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">social</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة social مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import SettingsSection from '../../../../components/admin/crud/SettingsSection';
+
+const NETWORKS = [
+  ['facebook', 'فيسبوك'], ['twitter', 'X / تويتر'], ['instagram', 'إنستغرام'],
+  ['linkedin', 'لينكدإن'], ['youtube', 'يوتيوب'], ['tiktok', 'تيك توك'],
+  ['snapchat', 'سناب شات'], ['pinterest', 'بينتريست'], ['github', 'GitHub'],
+];
+
+export default function SocialSettingsPage() {
+  return (
+    <SettingsSection
+      group="socials"
+      title="وسائل التواصل الاجتماعي"
+      subtitle="الروابط التي تظهر في الشريط العلوي والفوتر — اترك الحقل فارغاً لإخفاء الأيقونة"
+      breadcrumbLabel="وسائل التواصل"
+      defaults={Object.fromEntries(NETWORKS.map(([k]) => [k, '']))}
+      fields={NETWORKS.map(([key, label]) => ({
+        name: key, label, dir: 'ltr', placeholder: `https://${key}.com/...`,
+      }))}
+    />
+  );
+}

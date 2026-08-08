@@ -1,34 +1,63 @@
-"use client";
-import {useEffect,useState} from "react"; import api from "../../../utils/api"; import DataTable from "../../../components/admin/ui/DataTable"; import ConfirmModal from "../../../components/admin/ui/ConfirmModal"; import Toast from "../../../components/admin/ui/Toast"; import ToggleSwitch from "../../../components/admin/ui/ToggleSwitch";
-export default function Page(){
-  const [rows,setRows]=useState([]); const [loading,setLoading]=useState(true); const [showForm,setShowForm]=useState(false); const [form,setForm]=useState({}); const [editId,setEditId]=useState(null); const [delId,setDelId]=useState(null); const [toast,setToast]=useState("");
-  const load=()=> api.get("/services").then(r=>setRows(Array.isArray(r.data)?r.data:r.data?.data||[])).catch(()=>{}).finally(()=>setLoading(false));
-  useEffect(()=>{load();},[]);
-  const save=async()=>{
-    try{
-      if(editId) await api.put("/services/"+editId, form);
-      else await api.post("/services", form);
-      setToast("تم الحفظ"); setShowForm(false); setForm({}); setEditId(null); load();
-      setTimeout(()=>setToast(""),2000);
-    }catch(e){ alert(e.response?.data?.message||"خطأ"); }
-  };
-  const del=async()=>{ await api.delete("/services/"+delId); setDelId(null); load(); setToast("تم الحذف"); setTimeout(()=>setToast(""),2000); };
-  const baseCols=[{"key": "title", "label": "اسم الخدمة"}, {"key": "isFeatured", "label": "مميزة"}, {"key": "isActive", "label": "الحالة"}];
-  const cols=baseCols.map(c=> ({...c, render: c.key==="isActive" ? (v,row)=> <ToggleSwitch checked={!!v} onChange={async(val)=>{ await api.put("/services/"+row._id,{isActive:val}); load();}} /> : undefined }));
-  if(loading) return <div className="p-8 text-center">جاري التحميل...</div>;
-  return <div className="space-y-4">
-    <div className="flex justify-between items-center"><h1 className="text-2xl font-bold">إدارة الخدمات</h1><button onClick={()=>{setForm({});setEditId(null);setShowForm(true);}} className="btn-primary">+ إضافة</button></div>
-    <DataTable columns={[...cols, {key:"actions", label:"إجراءات", render:(_,row)=> <div className="flex gap-2"><button onClick={()=>{setForm(row);setEditId(row._id);setShowForm(true);}} className="text-blue-600">تعديل</button><button onClick={()=>setDelId(row._id)} className="text-red-600">حذف</button></div>}]} rows={rows} />
-    {showForm && <div className="fixed inset-0 bg-black/40 grid place-items-center z-50 p-4"><div className="bg-white rounded-xl p-6 w-full max-w-lg space-y-3">
-      <h3 className="font-bold">{editId?"تعديل":"إضافة"} إدارة الخدمات</h3>
-      <input value={form.title||""} onChange={e=>setForm({...form,title:e.target.value})} placeholder="اسم الخدمة" className="border w-full p-3 rounded-lg" />
-      <input value={form.shortDesc||""} onChange={e=>setForm({...form,shortDesc:e.target.value})} placeholder="وصف مختصر" className="border w-full p-3 rounded-lg" />
-      <input value={form.icon||""} onChange={e=>setForm({...form,icon:e.target.value})} placeholder="أيقونة" className="border w-full p-3 rounded-lg" />
-      <input value={form.image||""} onChange={e=>setForm({...form,image:e.target.value})} placeholder="رابط الصورة" className="border w-full p-3 rounded-lg" />
-      <label className="flex items-center gap-2"><ToggleSwitch checked={!!form.isActive} onChange={v=>setForm({...form,isActive:v})} /> مفعل</label>
-      <div className="flex gap-2 justify-end"><button onClick={()=>setShowForm(false)} className="px-4 py-2 border rounded">إلغاء</button><button onClick={save} className="btn-primary">حفظ</button></div>
-    </div></div>}
-    <ConfirmModal open={!!delId} title="هل أنت متأكد من الحذف؟" onConfirm={del} onCancel={()=>setDelId(null)} />
-    <Toast message={toast} />
-  </div>
+'use client';
+
+import { Eye } from 'lucide-react';
+import CrudPage from '../../../components/admin/crud/CrudPage';
+import Icon from '../../../components/shared/Icon';
+import Badge from '../../../components/admin/ui/Badge';
+import { ADMIN_BASE } from '../../../utils/constants';
+
+export default function ServicesPage() {
+  return (
+    <CrudPage
+      endpoint="/services"
+      module="services"
+      title="إدارة الخدمات"
+      subtitle="الخدمات المعروضة على الموقع وصفحات التفاصيل الخاصة بها"
+      breadcrumb={[{ label: 'الخدمات' }]}
+      addLabel="إضافة خدمة"
+      addHref={`${ADMIN_BASE}/services/add`}
+      editHref={(r) => `${ADMIN_BASE}/services/edit/${r._id}`}
+      reorderable
+      exportable
+      dragTitle={(r) => r.title}
+      filters={[
+        { key: 'status', label: 'كل الحالات', options: [{ value: 'published', label: 'منشور' }, { value: 'draft', label: 'مسودة' }] },
+        { key: 'isFeatured', label: 'الكل', options: [{ value: 'true', label: 'المميزة فقط' }, { value: 'false', label: 'غير المميزة' }] },
+      ]}
+      columns={[
+        {
+          key: 'title',
+          label: 'الخدمة',
+          sortable: true,
+          render: (r) => (
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary grid place-items-center shrink-0">
+                <Icon name={r.icon} className="w-5 h-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="font-semibold text-dark truncate">{r.title}</p>
+                <p className="text-xs text-gray-400 truncate max-w-xs">{r.shortDesc}</p>
+              </div>
+            </div>
+          ),
+        },
+        { key: 'status', label: 'النشر', width: '110px', render: (r) => <Badge status={r.status} /> },
+        {
+          key: 'isFeatured',
+          label: 'مميزة',
+          width: '80px',
+          render: (r) => (r.isFeatured ? <span className="badge-orange">مميزة</span> : <span className="text-gray-300">—</span>),
+        },
+        { key: 'views', label: 'المشاهدات', sortable: true, width: '100px', render: (r) => <span className="text-gray-500">{r.views || 0}</span> },
+        { key: 'order', label: 'الترتيب', sortable: true, width: '80px' },
+      ]}
+      extraRowActions={(row) => (
+        row.slug ? (
+          <a href={`/services/${row.slug}`} target="_blank" rel="noreferrer" title="معاينة" className="w-8 h-8 grid place-items-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-primary">
+            <Eye className="w-4 h-4" />
+          </a>
+        ) : null
+      )}
+    />
+  );
 }

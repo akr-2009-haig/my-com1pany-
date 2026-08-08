@@ -1,34 +1,70 @@
-"use client";
-import {useEffect,useState} from "react"; import api from "../../../utils/api"; import DataTable from "../../../components/admin/ui/DataTable"; import ConfirmModal from "../../../components/admin/ui/ConfirmModal"; import Toast from "../../../components/admin/ui/Toast"; import ToggleSwitch from "../../../components/admin/ui/ToggleSwitch";
-export default function Page(){
-  const [rows,setRows]=useState([]); const [loading,setLoading]=useState(true); const [showForm,setShowForm]=useState(false); const [form,setForm]=useState({}); const [editId,setEditId]=useState(null); const [delId,setDelId]=useState(null); const [toast,setToast]=useState("");
-  const load=()=> api.get("/testimonials").then(r=>setRows(Array.isArray(r.data)?r.data:r.data?.data||[])).catch(()=>{}).finally(()=>setLoading(false));
-  useEffect(()=>{load();},[]);
-  const save=async()=>{
-    try{
-      if(editId) await api.put("/testimonials/"+editId, form);
-      else await api.post("/testimonials", form);
-      setToast("تم الحفظ"); setShowForm(false); setForm({}); setEditId(null); load();
-      setTimeout(()=>setToast(""),2000);
-    }catch(e){ alert(e.response?.data?.message||"خطأ"); }
-  };
-  const del=async()=>{ await api.delete("/testimonials/"+delId); setDelId(null); load(); setToast("تم الحذف"); setTimeout(()=>setToast(""),2000); };
-  const baseCols=[{"key": "name", "label": "الاسم"}, {"key": "company", "label": "الشركة"}, {"key": "rating", "label": "التقييم"}];
-  const cols=baseCols.map(c=> ({...c, render: c.key==="isActive" ? (v,row)=> <ToggleSwitch checked={!!v} onChange={async(val)=>{ await api.put("/testimonials/"+row._id,{isActive:val}); load();}} /> : undefined }));
-  if(loading) return <div className="p-8 text-center">جاري التحميل...</div>;
-  return <div className="space-y-4">
-    <div className="flex justify-between items-center"><h1 className="text-2xl font-bold">آراء العملاء</h1><button onClick={()=>{setForm({});setEditId(null);setShowForm(true);}} className="btn-primary">+ إضافة</button></div>
-    <DataTable columns={[...cols, {key:"actions", label:"إجراءات", render:(_,row)=> <div className="flex gap-2"><button onClick={()=>{setForm(row);setEditId(row._id);setShowForm(true);}} className="text-blue-600">تعديل</button><button onClick={()=>setDelId(row._id)} className="text-red-600">حذف</button></div>}]} rows={rows} />
-    {showForm && <div className="fixed inset-0 bg-black/40 grid place-items-center z-50 p-4"><div className="bg-white rounded-xl p-6 w-full max-w-lg space-y-3">
-      <h3 className="font-bold">{editId?"تعديل":"إضافة"} آراء العملاء</h3>
-      <input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} placeholder="الاسم" className="border w-full p-3 rounded-lg" />
-      <input value={form.company||""} onChange={e=>setForm({...form,company:e.target.value})} placeholder="الشركة" className="border w-full p-3 rounded-lg" />
-      <input value={form.content||""} onChange={e=>setForm({...form,content:e.target.value})} placeholder="نص الشهادة" className="border w-full p-3 rounded-lg" />
-      <input value={form.rating||""} onChange={e=>setForm({...form,rating:e.target.value})} placeholder="التقييم 1-5" className="border w-full p-3 rounded-lg" />
-      <label className="flex items-center gap-2"><ToggleSwitch checked={!!form.isActive} onChange={v=>setForm({...form,isActive:v})} /> مفعل</label>
-      <div className="flex gap-2 justify-end"><button onClick={()=>setShowForm(false)} className="px-4 py-2 border rounded">إلغاء</button><button onClick={save} className="btn-primary">حفظ</button></div>
-    </div></div>}
-    <ConfirmModal open={!!delId} title="هل أنت متأكد من الحذف؟" onConfirm={del} onCancel={()=>setDelId(null)} />
-    <Toast message={toast} />
-  </div>
+'use client';
+
+import { Star } from 'lucide-react';
+import CrudPage from '../../../components/admin/crud/CrudPage';
+
+export default function TestimonialsPage() {
+  return (
+    <CrudPage
+      endpoint="/testimonials"
+      module="testimonials"
+      title="آراء العملاء"
+      subtitle="الشهادات التي تظهر في قسم آراء العملاء"
+      breadcrumb={[{ label: 'العملاء والشركاء' }, { label: 'آراء العملاء' }]}
+      addLabel="إضافة رأي"
+      reorderable
+      modalSize="lg"
+      dragTitle={(r) => r.name}
+      defaults={{ name: '', position: '', company: '', avatar: '', content: '', rating: 5, isActive: true }}
+      columns={[
+        {
+          key: 'name',
+          label: 'العميل',
+          sortable: true,
+          render: (r) => (
+            <div className="flex items-center gap-2.5">
+              {r.avatar
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={r.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+                : <span className="w-10 h-10 rounded-full bg-primary/10 text-primary grid place-items-center text-sm font-bold">{(r.name || '?').charAt(0)}</span>}
+              <div className="min-w-0">
+                <p className="font-semibold text-dark truncate">{r.name}</p>
+                <p className="text-xs text-gray-400 truncate">{[r.position, r.company].filter(Boolean).join(' — ')}</p>
+              </div>
+            </div>
+          ),
+        },
+        { key: 'content', label: 'الرأي', render: (r) => <span className="text-gray-600 line-clamp-2 max-w-md block">{r.content}</span> },
+        {
+          key: 'rating',
+          label: 'التقييم',
+          sortable: true,
+          width: '120px',
+          render: (r) => (
+            <span className="flex gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className={`w-3.5 h-3.5 ${i < (r.rating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`} />
+              ))}
+            </span>
+          ),
+        },
+        { key: 'order', label: 'الترتيب', sortable: true, width: '80px' },
+      ]}
+      fields={[
+        { name: 'name', label: 'اسم العميل', required: true },
+        { name: 'position', label: 'المسمى الوظيفي' },
+        { name: 'company', label: 'الشركة' },
+        {
+          name: 'rating',
+          label: 'التقييم',
+          type: 'select',
+          options: [5, 4, 3, 2, 1].map((n) => ({ value: n, label: `${n} نجوم` })),
+        },
+        { name: 'avatar', label: 'صورة العميل', type: 'image', folder: 'testimonials', ratio: 'aspect-square', cols: 2 },
+        { name: 'content', label: 'نص الرأي', type: 'textarea', rows: 5, required: true, cols: 2 },
+        { name: 'isActive', label: 'مفعّل', type: 'toggle', default: true },
+      ]}
+      beforeSave={(p) => ({ ...p, rating: Number(p.rating) || 5 })}
+    />
+  );
 }

@@ -1,33 +1,90 @@
-"use client";
-import {useEffect,useState} from "react"; import api from "../../../utils/api"; import DataTable from "../../../components/admin/ui/DataTable"; import ConfirmModal from "../../../components/admin/ui/ConfirmModal"; import Toast from "../../../components/admin/ui/Toast"; import ToggleSwitch from "../../../components/admin/ui/ToggleSwitch";
-export default function Page(){
-  const [rows,setRows]=useState([]); const [loading,setLoading]=useState(true); const [showForm,setShowForm]=useState(false); const [form,setForm]=useState({}); const [editId,setEditId]=useState(null); const [delId,setDelId]=useState(null); const [toast,setToast]=useState("");
-  const load=()=> api.get("/jobs").then(r=>setRows(Array.isArray(r.data)?r.data:r.data?.data||[])).catch(()=>{}).finally(()=>setLoading(false));
-  useEffect(()=>{load();},[]);
-  const save=async()=>{
-    try{
-      if(editId) await api.put("/jobs/"+editId, form);
-      else await api.post("/jobs", form);
-      setToast("تم الحفظ"); setShowForm(false); setForm({}); setEditId(null); load();
-      setTimeout(()=>setToast(""),2000);
-    }catch(e){ alert(e.response?.data?.message||"خطأ"); }
-  };
-  const del=async()=>{ await api.delete("/jobs/"+delId); setDelId(null); load(); setToast("تم الحذف"); setTimeout(()=>setToast(""),2000); };
-  const baseCols=[{"key": "title", "label": "المسمى"}, {"key": "location", "label": "الموقع"}, {"key": "isActive", "label": "الحالة"}];
-  const cols=baseCols.map(c=> ({...c, render: c.key==="isActive" ? (v,row)=> <ToggleSwitch checked={!!v} onChange={async(val)=>{ await api.put("/jobs/"+row._id,{isActive:val}); load();}} /> : undefined }));
-  if(loading) return <div className="p-8 text-center">جاري التحميل...</div>;
-  return <div className="space-y-4">
-    <div className="flex justify-between items-center"><h1 className="text-2xl font-bold">الوظائف</h1><button onClick={()=>{setForm({});setEditId(null);setShowForm(true);}} className="btn-primary">+ إضافة</button></div>
-    <DataTable columns={[...cols, {key:"actions", label:"إجراءات", render:(_,row)=> <div className="flex gap-2"><button onClick={()=>{setForm(row);setEditId(row._id);setShowForm(true);}} className="text-blue-600">تعديل</button><button onClick={()=>setDelId(row._id)} className="text-red-600">حذف</button></div>}]} rows={rows} />
-    {showForm && <div className="fixed inset-0 bg-black/40 grid place-items-center z-50 p-4"><div className="bg-white rounded-xl p-6 w-full max-w-lg space-y-3">
-      <h3 className="font-bold">{editId?"تعديل":"إضافة"} الوظائف</h3>
-      <input value={form.title||""} onChange={e=>setForm({...form,title:e.target.value})} placeholder="المسمى" className="border w-full p-3 rounded-lg" />
-      <input value={form.location||""} onChange={e=>setForm({...form,location:e.target.value})} placeholder="الموقع" className="border w-full p-3 rounded-lg" />
-      <input value={form.department||""} onChange={e=>setForm({...form,department:e.target.value})} placeholder="القسم" className="border w-full p-3 rounded-lg" />
-      <label className="flex items-center gap-2"><ToggleSwitch checked={!!form.isActive} onChange={v=>setForm({...form,isActive:v})} /> مفعل</label>
-      <div className="flex gap-2 justify-end"><button onClick={()=>setShowForm(false)} className="px-4 py-2 border rounded">إلغاء</button><button onClick={save} className="btn-primary">حفظ</button></div>
-    </div></div>}
-    <ConfirmModal open={!!delId} title="هل أنت متأكد من الحذف؟" onConfirm={del} onCancel={()=>setDelId(null)} />
-    <Toast message={toast} />
-  </div>
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { Eye, Users } from 'lucide-react';
+import CrudPage from '../../../components/admin/crud/CrudPage';
+import api from '../../../utils/api';
+import { ADMIN_BASE, JOB_TYPES } from '../../../utils/constants';
+import { formatDateShort } from '../../../utils/formatDate';
+
+export default function JobsPage() {
+  const [departments, setDepartments] = useState([]);
+  useEffect(() => {
+    api.get('/job-departments', { params: { limit: 0 } }).then((r) => setDepartments(r.data?.data || [])).catch(() => {});
+  }, []);
+
+  return (
+    <CrudPage
+      endpoint="/jobs"
+      module="jobs"
+      title="الوظائف المتاحة"
+      subtitle="الوظائف المعلنة في صفحة الوظائف"
+      breadcrumb={[{ label: 'الوظائف' }]}
+      addLabel="إضافة وظيفة"
+      addHref={`${ADMIN_BASE}/jobs/add`}
+      editHref={(r) => `${ADMIN_BASE}/jobs/edit/${r._id}`}
+      reorderable
+      exportable
+      dragTitle={(r) => r.title}
+      filters={[
+        { key: 'department', label: 'كل الأقسام', options: departments.map((d) => ({ value: d.name, label: d.name })) },
+        { key: 'type', label: 'كل الأنواع', options: JOB_TYPES },
+      ]}
+      extraHeaderActions={(
+        <Link href={`${ADMIN_BASE}/jobs/applications`} className="btn btn-sm bg-white border border-gray-200 text-gray-700 hover:border-primary hover:text-primary">
+          <Users className="w-4 h-4" /> طلبات التوظيف
+        </Link>
+      )}
+      columns={[
+        {
+          key: 'title',
+          label: 'الوظيفة',
+          sortable: true,
+          render: (r) => (
+            <div className="min-w-0">
+              <p className="font-semibold text-dark truncate">{r.title}</p>
+              <p className="text-xs text-gray-400 truncate">{r.location || 'غير محدد'}</p>
+            </div>
+          ),
+        },
+        { key: 'department', label: 'القسم', render: (r) => <span className="badge-blue">{r.department || '—'}</span> },
+        {
+          key: 'type',
+          label: 'النوع',
+          width: '110px',
+          render: (r) => <span className="badge-gray">{JOB_TYPES.find((t) => t.value === r.type)?.label || r.type}</span>,
+        },
+        {
+          key: 'applicationsCount',
+          label: 'المتقدمون',
+          sortable: true,
+          width: '100px',
+          render: (r) => (
+            <Link href={`${ADMIN_BASE}/jobs/applications`} className="badge-primary hover:bg-primary hover:text-white">
+              {r.applicationsCount || 0}
+            </Link>
+          ),
+        },
+        {
+          key: 'deadline',
+          label: 'آخر موعد',
+          sortable: true,
+          width: '110px',
+          render: (r) => {
+            if (!r.deadline) return <span className="text-gray-300">—</span>;
+            const expired = new Date(r.deadline) < new Date();
+            return <span className={`text-xs ${expired ? 'text-danger font-semibold' : 'text-gray-500'}`}>{formatDateShort(r.deadline)}</span>;
+          },
+        },
+      ]}
+      extraRowActions={(row) => (
+        row.slug ? (
+          <a href={`/careers/${row.slug}`} target="_blank" rel="noreferrer" title="معاينة" className="w-8 h-8 grid place-items-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-primary">
+            <Eye className="w-4 h-4" />
+          </a>
+        ) : null
+      )}
+    />
+  );
 }

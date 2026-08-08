@@ -1,1 +1,23 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">security</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة security مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import SettingsSection from '../../../../components/admin/crud/SettingsSection';
+
+export default function SecuritySettingsPage() {
+  return (
+    <SettingsSection
+      group="security"
+      title="إعدادات الأمان"
+      subtitle="حماية النماذج من السبام وحماية لوحة التحكم من محاولات الدخول المتكررة"
+      breadcrumbLabel="الأمان"
+      defaults={{ recaptchaEnabled: false, siteKey: '', secretKey: '', maxAttempts: 5, blockDuration: 30, twoFactor: false }}
+      fields={[
+        { name: 'recaptchaEnabled', label: 'تفعيل reCAPTCHA على النماذج', type: 'toggle' },
+        { name: 'twoFactor', label: 'إتاحة التحقق الثنائي للمستخدمين', type: 'toggle' },
+        { name: 'siteKey', label: 'reCAPTCHA Site Key', dir: 'ltr', when: (f) => f.recaptchaEnabled },
+        { name: 'secretKey', label: 'reCAPTCHA Secret Key', dir: 'ltr', type: 'password', when: (f) => f.recaptchaEnabled },
+        { name: 'maxAttempts', label: 'عدد محاولات الدخول قبل الحظر', type: 'number', min: 1, max: 20 },
+        { name: 'blockDuration', label: 'مدة الحظر (بالدقائق)', type: 'number', min: 1, max: 1440 },
+      ]}
+    />
+  );
+}
