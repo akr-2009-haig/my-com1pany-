@@ -1,1 +1,33 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">categories</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة categories مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import CrudPage from '../../../../components/admin/crud/CrudPage';
+import { ADMIN_BASE } from '../../../../utils/constants';
+
+export default function PostCategoriesPage() {
+  return (
+    <CrudPage
+      endpoint="/post-categories"
+      module="blog"
+      title="تصنيفات المدونة"
+      subtitle="التصنيفات التي تُنظَّم بها مقالات المدونة"
+      breadcrumb={[{ label: 'المدونة', href: `${ADMIN_BASE}/blog` }, { label: 'التصنيفات' }]}
+      addLabel="إضافة تصنيف"
+      reorderable
+      modalSize="md"
+      dragTitle={(r) => r.name}
+      defaults={{ name: '', nameEn: '', description: '', isActive: true }}
+      columns={[
+        { key: 'name', label: 'التصنيف', sortable: true, render: (r) => <span className="font-semibold text-dark">{r.name}</span> },
+        { key: 'slug', label: 'الرابط', render: (r) => <code className="text-xs text-gray-500" dir="ltr">{r.slug}</code> },
+        { key: 'description', label: 'الوصف', render: (r) => <span className="text-gray-500 text-xs line-clamp-1">{r.description || '—'}</span> },
+        { key: 'order', label: 'الترتيب', sortable: true, width: '80px' },
+      ]}
+      fields={[
+        { name: 'name', label: 'اسم التصنيف', required: true },
+        { name: 'nameEn', label: 'الاسم (EN)', dir: 'ltr' },
+        { name: 'description', label: 'وصف مختصر', type: 'textarea', rows: 3, cols: 2 },
+        { name: 'isActive', label: 'مفعّل', type: 'toggle', default: true },
+      ]}
+    />
+  );
+}

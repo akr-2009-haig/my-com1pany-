@@ -1,1 +1,26 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">tags</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة tags مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import CrudPage from '../../../../components/admin/crud/CrudPage';
+import { ADMIN_BASE } from '../../../../utils/constants';
+
+export default function TagsPage() {
+  return (
+    <CrudPage
+      endpoint="/tags"
+      module="blog"
+      title="وسوم المدونة"
+      subtitle="الكلمات الدلالية المرتبطة بالمقالات"
+      breadcrumb={[{ label: 'المدونة', href: `${ADMIN_BASE}/blog` }, { label: 'الوسوم' }]}
+      addLabel="إضافة وسم"
+      toggleField={null}
+      modalSize="sm"
+      dragTitle={(r) => r.name}
+      defaults={{ name: '' }}
+      columns={[
+        { key: 'name', label: 'الوسم', sortable: true, render: (r) => <span className="badge-primary">{r.name}</span> },
+        { key: 'slug', label: 'الرابط', render: (r) => <code className="text-xs text-gray-500" dir="ltr">{r.slug}</code> },
+      ]}
+      fields={[{ name: 'name', label: 'اسم الوسم', required: true, cols: 2 }]}
+    />
+  );
+}

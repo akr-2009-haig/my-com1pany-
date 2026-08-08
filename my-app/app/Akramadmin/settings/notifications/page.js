@@ -1,1 +1,24 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">notifications</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة notifications مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import SettingsSection from '../../../../components/admin/crud/SettingsSection';
+
+export default function NotificationsSettingsPage() {
+  return (
+    <SettingsSection
+      group="notifications"
+      title="إعدادات التنبيهات"
+      subtitle="تحكّم في التنبيهات الداخلية ورسائل البريد عند وصول طلب جديد"
+      breadcrumbLabel="التنبيهات"
+      defaults={{ onMessage: true, onQuote: true, onPackage: true, onApplication: true, onComment: true, emailCopy: false, email: '' }}
+      fields={[
+        { name: 'onMessage', label: 'تنبيه عند وصول رسالة تواصل', type: 'toggle', default: true },
+        { name: 'onQuote', label: 'تنبيه عند طلب عرض سعر', type: 'toggle', default: true },
+        { name: 'onPackage', label: 'تنبيه عند طلب باقة', type: 'toggle', default: true },
+        { name: 'onApplication', label: 'تنبيه عند طلب توظيف', type: 'toggle', default: true },
+        { name: 'onComment', label: 'تنبيه عند تعليق جديد', type: 'toggle', default: true },
+        { name: 'emailCopy', label: 'إرسال نسخة بالبريد الإلكتروني', type: 'toggle' },
+        { name: 'email', label: 'بريد استقبال التنبيهات', type: 'email', dir: 'ltr', cols: 2, hint: 'اتركه فارغاً لاستخدام بريد الشركة' },
+      ]}
+    />
+  );
+}

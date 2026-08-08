@@ -1,17 +1,29 @@
-"use client";
-import {useEffect,useState} from "react"; import api from "../../utils/api";
-export default function TopBar(){
-  const [settings,setSettings]=useState(null);
-  useEffect(()=>{ api.get("/settings").then(r=>setSettings(r.data)).catch(()=>{}); },[]);
-  return <div className="bg-[#f8f9fa] text-sm border-b">
-    <div className="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
-      <div className="flex gap-4">
-        <span>📞 {settings?.phone || "+966 500 000 000"}</span>
-        <span>✉️ {settings?.email || "info@company.com"}</span>
-      </div>
-      <div className="flex gap-2">
-        {["F","X","I","L"].map(c=> <a key={c} href="#" className="w-7 h-7 rounded-full bg-[#00BCD4] text-white grid place-items-center text-xs hover:bg-[#00ACC1]">{c}</a>)}
+import { Phone, Mail } from 'lucide-react';
+import SocialLinks from '../shared/SocialLinks';
+
+export default function TopBar({ settings }) {
+  const { phone, email } = settings || {};
+  if (!phone && !email) return null;
+
+  return (
+    <div className="hidden md:block bg-[#f8f9fa] border-b border-gray-100 text-[13px]">
+      <div className="container-app flex items-center justify-between h-10">
+        <div className="flex items-center gap-6 text-gray-600">
+          {phone && (
+            <a href={`tel:${phone}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+              <Phone className="w-3.5 h-3.5 text-primary" />
+              <span dir="ltr">{phone}</span>
+            </a>
+          )}
+          {email && (
+            <a href={`mailto:${email}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+              <Mail className="w-3.5 h-3.5 text-primary" />
+              <span dir="ltr">{email}</span>
+            </a>
+          )}
+        </div>
+        <SocialLinks socials={settings?.socials} size="sm" />
       </div>
     </div>
-  </div>
+  );
 }

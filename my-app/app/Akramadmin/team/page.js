@@ -1,33 +1,54 @@
-"use client";
-import {useEffect,useState} from "react"; import api from "../../../utils/api"; import DataTable from "../../../components/admin/ui/DataTable"; import ConfirmModal from "../../../components/admin/ui/ConfirmModal"; import Toast from "../../../components/admin/ui/Toast"; import ToggleSwitch from "../../../components/admin/ui/ToggleSwitch";
-export default function Page(){
-  const [rows,setRows]=useState([]); const [loading,setLoading]=useState(true); const [showForm,setShowForm]=useState(false); const [form,setForm]=useState({}); const [editId,setEditId]=useState(null); const [delId,setDelId]=useState(null); const [toast,setToast]=useState("");
-  const load=()=> api.get("/team").then(r=>setRows(Array.isArray(r.data)?r.data:r.data?.data||[])).catch(()=>{}).finally(()=>setLoading(false));
-  useEffect(()=>{load();},[]);
-  const save=async()=>{
-    try{
-      if(editId) await api.put("/team/"+editId, form);
-      else await api.post("/team", form);
-      setToast("تم الحفظ"); setShowForm(false); setForm({}); setEditId(null); load();
-      setTimeout(()=>setToast(""),2000);
-    }catch(e){ alert(e.response?.data?.message||"خطأ"); }
-  };
-  const del=async()=>{ await api.delete("/team/"+delId); setDelId(null); load(); setToast("تم الحذف"); setTimeout(()=>setToast(""),2000); };
-  const baseCols=[{"key": "name", "label": "الاسم"}, {"key": "role", "label": "المنصب"}, {"key": "isActive", "label": "الحالة"}];
-  const cols=baseCols.map(c=> ({...c, render: c.key==="isActive" ? (v,row)=> <ToggleSwitch checked={!!v} onChange={async(val)=>{ await api.put("/team/"+row._id,{isActive:val}); load();}} /> : undefined }));
-  if(loading) return <div className="p-8 text-center">جاري التحميل...</div>;
-  return <div className="space-y-4">
-    <div className="flex justify-between items-center"><h1 className="text-2xl font-bold">فريق العمل</h1><button onClick={()=>{setForm({});setEditId(null);setShowForm(true);}} className="btn-primary">+ إضافة</button></div>
-    <DataTable columns={[...cols, {key:"actions", label:"إجراءات", render:(_,row)=> <div className="flex gap-2"><button onClick={()=>{setForm(row);setEditId(row._id);setShowForm(true);}} className="text-blue-600">تعديل</button><button onClick={()=>setDelId(row._id)} className="text-red-600">حذف</button></div>}]} rows={rows} />
-    {showForm && <div className="fixed inset-0 bg-black/40 grid place-items-center z-50 p-4"><div className="bg-white rounded-xl p-6 w-full max-w-lg space-y-3">
-      <h3 className="font-bold">{editId?"تعديل":"إضافة"} فريق العمل</h3>
-      <input value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} placeholder="الاسم" className="border w-full p-3 rounded-lg" />
-      <input value={form.role||""} onChange={e=>setForm({...form,role:e.target.value})} placeholder="المنصب" className="border w-full p-3 rounded-lg" />
-      <input value={form.bio||""} onChange={e=>setForm({...form,bio:e.target.value})} placeholder="نبذة" className="border w-full p-3 rounded-lg" />
-      <label className="flex items-center gap-2"><ToggleSwitch checked={!!form.isActive} onChange={v=>setForm({...form,isActive:v})} /> مفعل</label>
-      <div className="flex gap-2 justify-end"><button onClick={()=>setShowForm(false)} className="px-4 py-2 border rounded">إلغاء</button><button onClick={save} className="btn-primary">حفظ</button></div>
-    </div></div>}
-    <ConfirmModal open={!!delId} title="هل أنت متأكد من الحذف؟" onConfirm={del} onCancel={()=>setDelId(null)} />
-    <Toast message={toast} />
-  </div>
+'use client';
+
+import CrudPage from '../../../components/admin/crud/CrudPage';
+
+export default function TeamPage() {
+  return (
+    <CrudPage
+      endpoint="/team"
+      module="team"
+      title="فريق العمل"
+      subtitle="أعضاء الفريق الظاهرون في صفحة «من نحن»"
+      breadcrumb={[{ label: 'عن الشركة' }, { label: 'فريق العمل' }]}
+      addLabel="إضافة عضو"
+      reorderable
+      modalSize="lg"
+      dragTitle={(r) => r.name}
+      defaults={{ name: '', position: '', bio: '', avatar: '', linkedin: '', twitter: '', email: '', isActive: true }}
+      columns={[
+        {
+          key: 'name',
+          label: 'العضو',
+          sortable: true,
+          render: (r) => (
+            <div className="flex items-center gap-2.5">
+              {r.avatar
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={r.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+                : <span className="w-10 h-10 rounded-full bg-primary/10 text-primary grid place-items-center text-sm font-bold">{(r.name || '?').charAt(0)}</span>}
+              <div className="min-w-0">
+                <p className="font-semibold text-dark truncate">{r.name}</p>
+                <p className="text-xs text-gray-400 truncate">{r.position}</p>
+              </div>
+            </div>
+          ),
+        },
+        { key: 'email', label: 'البريد', render: (r) => <span dir="ltr" className="text-xs text-gray-600">{r.email || '—'}</span> },
+        { key: 'bio', label: 'نبذة', render: (r) => <span className="text-gray-500 text-xs line-clamp-2 max-w-sm block">{r.bio || '—'}</span> },
+        { key: 'order', label: 'الترتيب', sortable: true, width: '80px' },
+      ]}
+      fields={[
+        { name: 'name', label: 'الاسم', required: true },
+        { name: 'position', label: 'المسمى الوظيفي', required: true },
+        { name: 'nameEn', label: 'الاسم (EN)', dir: 'ltr' },
+        { name: 'positionEn', label: 'المسمى (EN)', dir: 'ltr' },
+        { name: 'avatar', label: 'الصورة الشخصية', type: 'image', folder: 'team', ratio: 'aspect-square', cols: 2 },
+        { name: 'bio', label: 'نبذة مختصرة', type: 'textarea', rows: 4, cols: 2 },
+        { name: 'email', label: 'البريد الإلكتروني', type: 'email', dir: 'ltr' },
+        { name: 'linkedin', label: 'رابط LinkedIn', dir: 'ltr', placeholder: 'https://linkedin.com/in/...' },
+        { name: 'twitter', label: 'رابط X / Twitter', dir: 'ltr', placeholder: 'https://x.com/...' },
+        { name: 'isActive', label: 'مفعّل', type: 'toggle', default: true },
+      ]}
+    />
+  );
 }

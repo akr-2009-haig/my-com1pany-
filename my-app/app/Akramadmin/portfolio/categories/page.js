@@ -1,1 +1,44 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">categories</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة categories مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import CrudPage from '../../../../components/admin/crud/CrudPage';
+import Icon from '../../../../components/shared/Icon';
+import { ADMIN_BASE } from '../../../../utils/constants';
+
+export default function ProjectCategoriesPage() {
+  return (
+    <CrudPage
+      endpoint="/project-categories"
+      module="portfolio"
+      title="تصنيفات المشاريع"
+      subtitle="التصنيفات المستخدمة لفلترة معرض الأعمال"
+      breadcrumb={[{ label: 'معرض الأعمال', href: `${ADMIN_BASE}/portfolio` }, { label: 'التصنيفات' }]}
+      addLabel="إضافة تصنيف"
+      reorderable
+      modalSize="md"
+      dragTitle={(r) => r.name}
+      defaults={{ name: '', nameEn: '', description: '', icon: 'Folder', isActive: true }}
+      columns={[
+        {
+          key: 'name',
+          label: 'التصنيف',
+          sortable: true,
+          render: (r) => (
+            <div className="flex items-center gap-2.5">
+              <span className="w-9 h-9 rounded-lg bg-primary/10 text-primary grid place-items-center"><Icon name={r.icon} className="w-4.5 h-4.5" /></span>
+              <span className="font-semibold text-dark">{r.name}</span>
+            </div>
+          ),
+        },
+        { key: 'slug', label: 'الرابط', render: (r) => <code className="text-xs text-gray-500" dir="ltr">{r.slug}</code> },
+        { key: 'order', label: 'الترتيب', sortable: true, width: '80px' },
+      ]}
+      fields={[
+        { name: 'name', label: 'اسم التصنيف', required: true },
+        { name: 'nameEn', label: 'الاسم (EN)', dir: 'ltr' },
+        { name: 'icon', label: 'الأيقونة', type: 'icon', cols: 2 },
+        { name: 'description', label: 'وصف مختصر', type: 'textarea', rows: 3, cols: 2 },
+        { name: 'isActive', label: 'مفعّل', type: 'toggle', default: true },
+      ]}
+    />
+  );
+}

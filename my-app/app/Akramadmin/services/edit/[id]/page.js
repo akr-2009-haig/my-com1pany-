@@ -1,1 +1,22 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">edit</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة edit مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import ResourceForm from '../../../../../components/admin/crud/ResourceForm';
+import { SERVICE_DEFAULTS, SERVICE_GROUPS } from '../../../../../components/admin/specs/serviceFields';
+import { ADMIN_BASE } from '../../../../../utils/constants';
+
+export default function EditServicePage({ params }) {
+  return (
+    <ResourceForm
+      endpoint="/services"
+      module="services"
+      id={params.id}
+      title="تعديل الخدمة"
+      subtitle="حدّث بيانات الخدمة ثم احفظ التغييرات"
+      breadcrumb={[{ label: 'الخدمات', href: `${ADMIN_BASE}/services` }, { label: 'تعديل' }]}
+      backHref={`${ADMIN_BASE}/services`}
+      groups={SERVICE_GROUPS}
+      defaults={SERVICE_DEFAULTS}
+      previewPath={(f) => `/services/${f.slug}`}
+    />
+  );
+}

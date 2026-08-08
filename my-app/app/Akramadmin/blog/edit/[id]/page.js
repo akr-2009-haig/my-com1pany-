@@ -1,1 +1,33 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">edit</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة edit مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import { useEffect, useState } from 'react';
+import ResourceForm from '../../../../../components/admin/crud/ResourceForm';
+import { POST_DEFAULTS, postGroups } from '../../../../../components/admin/specs/postFields';
+import api from '../../../../../utils/api';
+import { ADMIN_BASE } from '../../../../../utils/constants';
+
+export default function EditPostPage({ params }) {
+  const [cats, setCats] = useState([]);
+  useEffect(() => {
+    api.get('/post-categories', { params: { limit: 0 } }).then((r) => setCats(r.data?.data || [])).catch(() => {});
+  }, []);
+
+  return (
+    <ResourceForm
+      endpoint="/posts"
+      module="blog"
+      id={params.id}
+      title="تعديل المقال"
+      breadcrumb={[{ label: 'المدونة', href: `${ADMIN_BASE}/blog` }, { label: 'تعديل' }]}
+      backHref={`${ADMIN_BASE}/blog`}
+      groups={postGroups(cats)}
+      defaults={POST_DEFAULTS}
+      toForm={(d) => ({
+        ...d,
+        categories: (d.categories || []).map((c) => String(typeof c === 'object' ? c._id : c)),
+        publishAt: d.publishAt ? String(d.publishAt).slice(0, 16) : '',
+      })}
+      previewPath={(f) => `/blog/${f.slug}`}
+    />
+  );
+}

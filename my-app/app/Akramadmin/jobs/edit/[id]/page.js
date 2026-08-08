@@ -1,1 +1,29 @@
-"use client"; export default function Page(){ return <div><h1 className="text-xl font-bold mb-4">edit</h1><div className="card p-6"><p className="text-gray-500">نموذج إدارة edit مع رفع ملفات و Toggle ومحرر نصوص غني.</p><div className="mt-4 space-y-3 max-w-xl"><input placeholder="العنوان" className="border w-full p-3 rounded-lg"/><textarea placeholder="الوصف" className="border w-full p-3 rounded-lg h-24"/><label className="flex items-center gap-2"><input type="checkbox" className="accent-[#00BCD4]" defaultChecked/> مفعل</label><button className="btn-primary">حفظ</button></div></div></div> }
+'use client';
+
+import { useEffect, useState } from 'react';
+import ResourceForm from '../../../../../components/admin/crud/ResourceForm';
+import { JOB_DEFAULTS, jobGroups } from '../../../../../components/admin/specs/jobFields';
+import api from '../../../../../utils/api';
+import { ADMIN_BASE } from '../../../../../utils/constants';
+
+export default function EditJobPage({ params }) {
+  const [deps, setDeps] = useState([]);
+  useEffect(() => {
+    api.get('/job-departments', { params: { limit: 0 } }).then((r) => setDeps(r.data?.data || [])).catch(() => {});
+  }, []);
+
+  return (
+    <ResourceForm
+      endpoint="/jobs"
+      module="jobs"
+      id={params.id}
+      title="تعديل الوظيفة"
+      breadcrumb={[{ label: 'الوظائف', href: `${ADMIN_BASE}/jobs` }, { label: 'تعديل' }]}
+      backHref={`${ADMIN_BASE}/jobs`}
+      groups={jobGroups(deps)}
+      defaults={JOB_DEFAULTS}
+      toForm={(d) => ({ ...d, deadline: d.deadline ? String(d.deadline).slice(0, 10) : '' })}
+      previewPath={(f) => `/careers/${f.slug}`}
+    />
+  );
+}

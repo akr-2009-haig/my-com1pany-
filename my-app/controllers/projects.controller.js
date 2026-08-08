@@ -1,7 +1,38 @@
-const Project=require('../models/Project');
-const emitEvent=require('../events/emitEvent');
-exports.getAll=async(req,res,next)=>{ try{ const data=await Project.find().sort({order:1,createdAt:-1}); res.json(data);}catch(e){next(e)} };
-exports.getOne=async(req,res,next)=>{ try{ const doc=await Project.findById(req.params.id); if(!doc) return res.status(404).json({message:"Not found"}); res.json(doc);}catch(e){next(e)} };
-exports.create=async(req,res,next)=>{ try{ const doc=await Project.create(req.body); emitEvent('projects:updated',{action:"create",data:doc}); res.status(201).json(doc);}catch(e){next(e)} };
-exports.update=async(req,res,next)=>{ try{ const doc=await Project.findByIdAndUpdate(req.params.id, req.body, {new:true}); if(!doc) return res.status(404).json({message:"Not found"}); emitEvent('projects:updated',{action:"update",data:doc}); res.json(doc);}catch(e){next(e)} };
-exports.remove=async(req,res,next)=>{ try{ const doc=await Project.findByIdAndDelete(req.params.id); if(!doc) return res.status(404).json({message:"Not found"}); emitEvent('projects:updated',{action:"delete",id:req.params.id}); res.json({message:"Deleted"});}catch(e){next(e)} };
+const crud = require('./factory');
+const { collection } = require('../lib/datastore');
+const { cleanHtml } = require('../lib/helpers');
+
+const base = crud('projects', {
+  event: 'projects:updated',
+  searchFields: ['title', 'client', 'slug'],
+  filters: ['category', { key: 'isActive', cast: 'boolean' }, { key: 'isFeatured', cast: 'boolean' }, 'status'],
+  populate: ['category'],
+  slugFrom: 'title',
+  slugFallback: 'project',
+  transformIn: (body) => ({
+    ...body,
+    description: cleanHtml(body.description),
+    descriptionEn: cleanHtml(body.descriptionEn),
+    images: Array.isArray(body.images) ? body.images.filter(Boolean) : [],
+    technologies: Array.isArray(body.technologies) ? body.technologies.filter(Boolean) : [],
+    cover: body.cover || (Array.isArray(body.images) && body.images[0]) || '',
+  }),
+});
+
+base.publicOne = async (req, res, next) => {
+  try {
+    const project = await collection('projects').findOne(
+      { slug: req.params.slug, isActive: true, status: 'published' },
+      { populate: ['category'] },
+    );
+    if (!project) return res.status(404).json({ message: 'المشروع غير موجود' });
+    await collection('projects').increment(project._id, 'views', 1);
+    const related = await collection('projects').find(
+      { isActive: true, status: 'published', category: project.category?._id || project.category, _id: { $ne: project._id } },
+      { limit: 3, populate: ['category'] },
+    );
+    return res.json({ project, related });
+  } catch (e) { return next(e); }
+};
+
+module.exports = base;
