@@ -1,0 +1,12 @@
+const r=require('express').Router();
+const c=require('../controllers/security.controller');
+const {verifyToken, authorize}=require('../middleware/auth');
+r.use(verifyToken, authorize('admin'));
+r.get('/blocked', c.getBlocked);
+r.post('/blocked', c.blockIp);
+r.delete('/blocked/:id', c.unblockIp);
+r.delete('/blocked/ip/:ip', c.unblockByIp);
+r.get('/login-logs', c.getLoginLogs);
+r.get('/activity-logs', c.getActivityLogs);
+r.delete('/activity-logs', c.clearLogs);
+module.exports=r;

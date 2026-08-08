@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+*{scroll-behavior:smooth}
+body{@apply bg-white text-[#333] font-sans}
+.btn-primary{@apply bg-[#00BCD4] hover:bg-[#00ACC1] text-white rounded-lg px-6 py-2.5 transition-all duration-300 shadow-sm}
+.card{@apply bg-white rounded-xl shadow-sm border border-gray-100}

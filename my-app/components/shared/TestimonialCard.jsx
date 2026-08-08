@@ -1,0 +1,1 @@
+export default function TestimonialCard({t}){ return <div className="card p-6"><p>{t.content}</p></div> }

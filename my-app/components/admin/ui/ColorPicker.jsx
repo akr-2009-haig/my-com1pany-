@@ -1,0 +1,1 @@
+export default function ColorPicker({value,onChange}){ return <input type="color" value={value||"#00BCD4"} onChange={e=>onChange(e.target.value)} className="w-12 h-10 p-1"/> }
