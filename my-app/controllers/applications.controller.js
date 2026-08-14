@@ -7,12 +7,13 @@ const emitEvent = require('../events/emitEvent');
 
 const base = crud('applications', {
   event: 'applications:updated',
-  searchFields: ['name', 'email', 'jobTitle'],
+  searchFields: ['name', 'email', 'jobTitle', 'source', 'experience'],
   filters: ['status', 'job', { key: 'isRead', cast: 'boolean' }],
   defaultSort: { createdAt: -1 },
   exportColumns: [
     { key: 'name', label: 'الاسم' }, { key: 'email', label: 'البريد' }, { key: 'phone', label: 'الهاتف' },
-    { key: 'jobTitle', label: 'الوظيفة' }, { key: 'status', label: 'الحالة' },
+    { key: 'jobTitle', label: 'الوظيفة' }, { key: 'source', label: 'مصدر المعرفة' },
+    { key: 'experience', label: 'سنوات الخبرة' }, { key: 'status', label: 'الحالة' },
     { key: 'resume', label: 'السيرة الذاتية' }, { key: 'createdAt', label: 'التاريخ' },
   ],
 });
@@ -20,7 +21,7 @@ const base = crud('applications', {
 /** Public application submission (multipart: resume file). */
 base.submit = async (req, res, next) => {
   try {
-    const { jobId, name, email, phone, coverLetter, portfolioUrl, website } = req.body;
+    const { jobId, name, email, phone, coverLetter, portfolioUrl, source, experience, website } = req.body;
     if (website) return res.json({ message: 'تم الاستلام' });
     if (!jobId || !name || !email) return res.status(400).json({ message: 'الاسم والبريد والوظيفة مطلوبة' });
     const job = await collection('jobs').findById(jobId);
@@ -39,6 +40,8 @@ base.submit = async (req, res, next) => {
       phone: cleanText(phone, 40),
       coverLetter: cleanText(coverLetter, 4000),
       portfolioUrl: cleanText(portfolioUrl, 300),
+      source: cleanText(source, 120),
+      experience: cleanText(experience, 120),
       resume,
       resumeName,
       status: 'new',

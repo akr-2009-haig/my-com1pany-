@@ -13,7 +13,7 @@ export default function QuotesPage() {
       title="طلبات عروض الأسعار"
       subtitle="الطلبات الواردة من صفحة «اطلب عرض سعر»"
       breadcrumb={[{ label: 'الطلبات والرسائل' }, { label: 'عروض الأسعار' }]}
-      searchPlaceholder="بحث بالاسم أو الشركة أو البريد..."
+      searchPlaceholder="بحث بالاسم أو الشركة أو البريد أو المصدر..."
       emptyText="لا توجد طلبات"
       canReply
       statusOptions={[
@@ -41,6 +41,7 @@ export default function QuotesPage() {
         { key: 'projectType', label: 'نوع المشروع', render: (r) => (r.projectType ? <span className="badge-blue">{r.projectType}</span> : <span className="text-gray-300">—</span>) },
         { key: 'budget', label: 'الميزانية', width: '140px', render: (r) => <span className="text-gray-600 text-xs">{r.budget || '—'}</span> },
         { key: 'timeline', label: 'المدة', width: '120px', render: (r) => <span className="text-gray-600 text-xs">{r.timeline || '—'}</span> },
+        { key: 'source', label: 'المصدر', width: '150px', render: (r) => (r.source ? <span className="text-gray-600 text-xs">{r.source}</span> : <span className="text-gray-300">—</span>) },
         {
           key: 'attachments',
           label: 'مرفقات',
@@ -61,6 +62,7 @@ export default function QuotesPage() {
               { label: 'نوع المشروع', value: d.projectType || '—' },
               { label: 'الميزانية', value: d.budget || '—' },
               { label: 'الجدول الزمني', value: d.timeline || '—' },
+              { label: 'كيف سمعت عنا', value: d.source || '—', full: true },
               { label: 'عنوان IP', value: d.ip || '—', dir: 'ltr' },
               { label: 'وصف المشروع', value: d.description || '—', full: true, pre: true },
               { label: 'تاريخ الطلب', value: formatDate(d.createdAt, { withTime: true }) },

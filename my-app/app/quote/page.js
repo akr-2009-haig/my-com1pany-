@@ -1,5 +1,5 @@
 import { CheckCircle2, Clock, ShieldCheck } from 'lucide-react';
-import { getBanner, getPage, getServices } from '../../lib/data';
+import { getBanner, getPage, getServices, getSettings } from '../../lib/data';
 import PageBanner from '../../components/shared/PageBanner';
 import QuoteForm from '../../components/forms/QuoteForm';
 
@@ -14,7 +14,15 @@ const PERKS = [
 ];
 
 export default async function QuotePage() {
-  const [page, services, banner] = await Promise.all([getPage('quote'), getServices({ limit: 0 }), getBanner('quote')]);
+  const [page, services, banner, settings] = await Promise.all([getPage('quote'), getServices({ limit: 0 }), getBanner('quote'), getSettings()]);
+  const qd = page?.data || {};
+  const settingsDD = settings.dropdowns || {};
+  const dropdowns = {
+    quoteProjectType: qd.quoteProjectType || settingsDD.quoteProjectType,
+    quoteBudget: qd.quoteBudget || settingsDD.quoteBudget,
+    quoteTimeline: qd.quoteTimeline || settingsDD.quoteTimeline,
+    quoteSource: qd.quoteSource || settingsDD.quoteSource,
+  };
 
   return (
     <>
@@ -28,7 +36,7 @@ export default async function QuotePage() {
       <section className="section bg-white">
         <div className="container-app grid lg:grid-cols-[1fr_300px] gap-10 items-start">
           <div className="card p-6 md:p-9">
-            <QuoteForm config={page?.data} services={services} />
+            <QuoteForm config={page?.data} services={services} dropdowns={dropdowns} />
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-28 self-start">

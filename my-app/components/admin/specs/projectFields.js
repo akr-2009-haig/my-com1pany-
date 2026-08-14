@@ -4,6 +4,9 @@ export const PROJECT_DEFAULTS = {
   seoTitle: '', seoDesc: '', keywords: '', status: 'published', isActive: true, isFeatured: false, order: 0,
 };
 
+import api from '../../../utils/api';
+import CategoryCombobox from '../ui/CategoryCombobox';
+
 export const projectGroups = (categories = []) => [
   {
     label: 'المعلومات الأساسية',
@@ -12,9 +15,19 @@ export const projectGroups = (categories = []) => [
       {
         name: 'category',
         label: 'التصنيف',
-        type: 'select',
-        placeholder: 'اختر التصنيف',
-        options: categories.map((c) => ({ value: c._id, label: c.name })),
+        type: 'custom',
+        cols: 2,
+        render: ({ value, set }) => (
+          <CategoryCombobox
+            value={value}
+            onChange={set}
+            options={categories}
+            onCreate={async (name) => {
+              const { data } = await api.post('/project-categories', { name, isActive: true });
+              return data;
+            }}
+          />
+        ),
       },
       { name: 'client', label: 'اسم العميل' },
       { name: 'projectDate', label: 'تاريخ التنفيذ', type: 'date' },

@@ -48,7 +48,7 @@ export default function FaqPage() {
       fields={[
         { name: 'question', label: 'السؤال', required: true, cols: 2 },
         { name: 'answer', label: 'الإجابة', type: 'textarea', rows: 6, required: true, cols: 2 },
-        { name: 'category', label: 'التصنيف', type: 'select', placeholder: 'بدون تصنيف', options: cats.map((c) => ({ value: c._id, label: c.name })) },
+        { name: 'category', label: 'التصنيف', type: 'select', placeholder: 'اختر تصنيف السؤال...', options: cats.map((c) => ({ value: c._id, label: c.name })) },
         { name: 'showOnPricing', label: 'إظهاره في صفحة الأسعار', type: 'toggle' },
         { name: 'questionEn', label: 'السؤال (EN)', dir: 'ltr', cols: 2 },
         { name: 'answerEn', label: 'الإجابة (EN)', type: 'textarea', rows: 4, dir: 'ltr', cols: 2 },

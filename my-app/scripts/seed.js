@@ -73,6 +73,25 @@ async function ensureBaseData() {
     });
   }
 
+  // Dropdown lists — merge defaults without overwriting admin changes
+  const ddDefaults = settingsDefaults.dropdowns || {};
+  const curDD = settings.dropdowns || {};
+  let ddChanged = false;
+  const dd = {};
+  for (const [k, def] of Object.entries(ddDefaults)) {
+    if (curDD[k] === undefined) { dd[k] = def; ddChanged = true; }
+    else dd[k] = curDD[k];
+  }
+  if (ddChanged) await collection('settings').updateOne({ _id: settings._id }, { dropdowns: dd }, { upsert: true });
+
+  // Default company departments (jobs)
+  if ((await collection('jobdepartments').count({})) === 0) {
+    const depts = ['التطوير والبرمجة', 'تصميم المنتج', 'التسويق الرقمي', 'المبيعات وخدمة العملاء', 'الإدارة والموارد البشرية', 'الدعم الفني', 'العمليات والبنية التحتية'];
+    for (let i = 0; i < depts.length; i += 1) {
+      await collection('jobdepartments').create({ name: depts[i], slug: makeSlug(depts[i], 'dept'), order: i });
+    }
+  }
+
   // Home sections order
   const sectionCount = await collection('sections').count({});
   if (sectionCount < DEFAULT_SECTIONS.length) {
@@ -335,7 +354,7 @@ async function seedDemoContent() {
   }
 
   /* Project categories */
-  const catNames = ['مواقع إلكترونية', 'تطبيقات جوال', 'أنظمة مؤسسية', 'متاجر إلكترونية', 'تصميم وهوية'];
+  const catNames = ['مواقع ويب', 'تطبيقات موبايل', 'أنظمة إدارة', 'متاجر إلكترونية', 'تصميم UI/UX', 'تطبيقات ويب', 'هوية بصرية', 'أخرى'];
   const cats = [];
   for (let i = 0; i < catNames.length; i += 1) {
     cats.push(await collection('projectcategories').create({ name: catNames[i], slug: makeSlug(catNames[i], 'cat'), isActive: true, order: i, icon: 'Folder' }));
@@ -489,7 +508,7 @@ async function seedDemoContent() {
   }
 
   /* FAQ */
-  const faqCatNames = ['أسئلة عامة', 'أسئلة تقنية', 'الأسعار والدفع', 'الدعم الفني'];
+  const faqCatNames = ['عام', 'الخدمات والمشاريع', 'الأسعار والباقات', 'طريقة العمل', 'الدعم الفني', 'الشراكات والتعاون'];
   const faqCats = [];
   for (let i = 0; i < faqCatNames.length; i += 1) {
     faqCats.push(await collection('faqcategories').create({ name: faqCatNames[i], slug: makeSlug(faqCatNames[i], 'faq'), isActive: true, order: i }));
@@ -511,9 +530,11 @@ async function seedDemoContent() {
     });
   }
 
-  /* Jobs */
-  const depts = ['التطوير', 'التصميم', 'التسويق', 'الإدارة'];
-  for (let i = 0; i < depts.length; i += 1) await collection('jobdepartments').create({ name: depts[i], slug: makeSlug(depts[i], 'dept'), order: i });
+  /* Jobs (departments are seeded in ensureBaseData; only add if none exist) */
+  if ((await collection('jobdepartments').count({})) === 0) {
+    const depts = ['التطوير', 'التصميم', 'التسويق', 'الإدارة'];
+    for (let i = 0; i < depts.length; i += 1) await collection('jobdepartments').create({ name: depts[i], slug: makeSlug(depts[i], 'dept'), order: i });
+  }
   const jobs = [
     { title: 'مطوّر Full Stack (React / Node)', department: 'التطوير', type: 'full-time', location: 'الرياض' },
     { title: 'مصمم واجهات UI/UX', department: 'التصميم', type: 'remote', location: 'عن بُعد' },

@@ -8,8 +8,10 @@ import { ADMIN_BASE } from '../../../../../utils/constants';
 
 export default function EditJobPage({ params }) {
   const [deps, setDeps] = useState([]);
+  const [jobTypes, setJobTypes] = useState(null);
   useEffect(() => {
     api.get('/job-departments', { params: { limit: 0 } }).then((r) => setDeps(r.data?.data || [])).catch(() => {});
+    api.get('/settings').then((r) => setJobTypes(r.data?.dropdowns?.jobTypes || null)).catch(() => {});
   }, []);
 
   return (
@@ -20,7 +22,7 @@ export default function EditJobPage({ params }) {
       title="تعديل الوظيفة"
       breadcrumb={[{ label: 'الوظائف', href: `${ADMIN_BASE}/jobs` }, { label: 'تعديل' }]}
       backHref={`${ADMIN_BASE}/jobs`}
-      groups={jobGroups(deps)}
+      groups={jobGroups(deps, jobTypes)}
       defaults={JOB_DEFAULTS}
       toForm={(d) => ({ ...d, deadline: d.deadline ? String(d.deadline).slice(0, 10) : '' })}
       previewPath={(f) => `/careers/${f.slug}`}

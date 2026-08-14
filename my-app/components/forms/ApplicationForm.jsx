@@ -5,13 +5,21 @@ import { UploadCloud, Send, Loader2, CheckCircle2, FileText, X } from 'lucide-re
 import api, { errMsg } from '../../utils/api';
 import { useToast } from '../shared/ToastProvider';
 import { formatBytes } from '../../utils/formatDate';
+import DropdownField from './DropdownField';
 
-export default function ApplicationForm({ jobId, jobTitle }) {
+const FALLBACK_SOURCE = ['موقع الشركة', 'LinkedIn', 'منصة بيت.كوم', 'منصة Glassdoor', 'توصية من موظف', 'منصة X (تويتر)', 'محرك بحث', 'أخرى'];
+const FALLBACK_EXPERIENCE = ['بدون خبرة (مبتدئ)', 'أقل من سنة', '1 – 2 سنة', '3 – 5 سنوات', '5 – 10 سنوات', 'أكثر من 10 سنوات'];
+
+export default function ApplicationForm({ jobId, jobTitle, dropdowns = {} }) {
   const { notify } = useToast();
-  const [v, setV] = useState({ name: '', email: '', phone: '', portfolioUrl: '', coverLetter: '', website: '' });
+  const [v, setV] = useState({ name: '', email: '', phone: '', portfolioUrl: '', coverLetter: '', source: '', experience: '', website: '' });
   const [file, setFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+
+  const dd = dropdowns || {};
+  const careersSource = dd.careersSource || {};
+  const careersExperience = dd.careersExperience || {};
 
   const submit = async (e) => {
     e.preventDefault();
@@ -62,6 +70,45 @@ export default function ApplicationForm({ jobId, jobTitle }) {
         <textarea rows={5} className="input resize-none" placeholder="عرّفنا بخبرتك ولماذا أنت مناسب لهذه الوظيفة…"
           value={v.coverLetter} onChange={(e) => setV({ ...v, coverLetter: e.target.value })} />
       </div>
+
+      {careersSource.visible !== false ? (
+        <div className="grid sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="label">مصدر معرفتك بالوظيفة{careersSource.required === true ? ' *' : ''}</label>
+            <DropdownField
+              value={v.source}
+              onChange={(x) => setV({ ...v, source: x })}
+              options={careersSource.options && careersSource.options.length ? careersSource.options : FALLBACK_SOURCE}
+              placeholder={careersSource.placeholder || 'كيف علمت بهذه الوظيفة؟...'}
+              required={careersSource.required === true}
+              name="source"
+            />
+          </div>
+          <div>
+            <label className="label">سنوات الخبرة{careersExperience.required === true ? ' *' : ''}</label>
+            <DropdownField
+              value={v.experience}
+              onChange={(x) => setV({ ...v, experience: x })}
+              options={careersExperience.options && careersExperience.options.length ? careersExperience.options : FALLBACK_EXPERIENCE}
+              placeholder={careersExperience.placeholder || 'كم سنة خبرتك؟...'}
+              required={careersExperience.required === true}
+              name="experience"
+            />
+          </div>
+        </div>
+      ) : careersExperience.visible !== false ? (
+        <div className="mb-4">
+          <label className="label">سنوات الخبرة{careersExperience.required === true ? ' *' : ''}</label>
+          <DropdownField
+            value={v.experience}
+            onChange={(x) => setV({ ...v, experience: x })}
+            options={careersExperience.options && careersExperience.options.length ? careersExperience.options : FALLBACK_EXPERIENCE}
+            placeholder={careersExperience.placeholder || 'كم سنة خبرتك؟...'}
+            required={careersExperience.required === true}
+            name="experience"
+          />
+        </div>
+      ) : null}
 
       <div className="mb-6">
         <label className="label">السيرة الذاتية (PDF / DOC)</label>

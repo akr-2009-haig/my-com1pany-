@@ -5,20 +5,39 @@ import { UploadCloud, X, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import api, { errMsg } from '../../utils/api';
 import { useToast } from '../shared/ToastProvider';
 import { formatBytes } from '../../utils/formatDate';
+import DropdownField from './DropdownField';
 
 const DEFAULT_FIELDS = [
   { name: 'name', label: 'الاسم الكامل', type: 'text', required: true, visible: true },
   { name: 'company', label: 'اسم الشركة', type: 'text', required: false, visible: true },
   { name: 'email', label: 'البريد الإلكتروني', type: 'email', required: true, visible: true },
   { name: 'phone', label: 'رقم الهاتف', type: 'tel', required: true, visible: true },
-  { name: 'projectType', label: 'نوع المشروع', type: 'service', required: true, visible: true },
+  { name: 'projectType', label: 'نوع المشروع', type: 'projectType', required: true, visible: true },
   { name: 'budget', label: 'الميزانية التقريبية', type: 'budget', required: false, visible: true },
   { name: 'timeline', label: 'الجدول الزمني', type: 'timeline', required: false, visible: true },
+  { name: 'source', label: 'كيف سمعت عنا؟', type: 'source', required: false, visible: true },
   { name: 'description', label: 'وصف المشروع', type: 'textarea', required: true, visible: true },
   { name: 'attachments', label: 'ملفات مرفقة', type: 'file', required: false, visible: true },
 ];
 
-export default function QuoteForm({ config = {}, services = [] }) {
+const DROPDOWN_TYPES = ['projectType', 'service', 'budget', 'timeline', 'source', 'select'];
+
+const FALLBACK_PROJECT = [
+  { label: 'موقع ويب', desc: 'موقع شركة، متجر، مدونة...' },
+  { label: 'تطبيق موبايل', desc: 'iOS، Android، أو كليهما' },
+  { label: 'نظام إدارة', desc: 'ERP، CRM، نظام مخصص' },
+  { label: 'متجر إلكتروني', desc: 'بيع منتجات أو خدمات' },
+  { label: 'تصميم UI/UX', desc: 'تصميم واجهات فقط' },
+  { label: 'تحسين موقع قائم', desc: 'إضافة ميزات أو إعادة تصميم' },
+  { label: 'تطبيق ويب', desc: 'SaaS، منصة، لوحة تحكم' },
+  { label: 'مشروع ذكاء اصطناعي', desc: 'chatbot، تحليل بيانات...' },
+  { label: 'أخرى', desc: 'سأشرح في التفاصيل' },
+];
+const FALLBACK_BUDGET = ['أقل من 1,000$', '1,000$ – 5,000$', '5,000$ – 10,000$', '10,000$ – 25,000$', '25,000$ – 50,000$', '50,000$ – 100,000$', 'أكثر من 100,000$', 'لم أحدد الميزانية بعد'];
+const FALLBACK_TIMELINE = ['عاجل جداً — أقل من أسبوعين', 'قريباً — من أسبوعين إلى شهر', 'معتدل — من 1 إلى 3 أشهر', 'متأنٍّ — من 3 إلى 6 أشهر', 'طويل المدى — أكثر من 6 أشهر', 'مرن — لا يوجد موعد محدد'];
+const FALLBACK_SOURCE = ['🔍 محرك بحث (Google، Bing...)', '📱 وسائل التواصل الاجتماعي', '👥 توصية من صديق أو زميل', '📢 إعلان ممول', '🎙️ مؤتمر أو فعالية', '📰 مقال أو مدونة', '📧 بريد إلكتروني', '🎯 أخرى'];
+
+export default function QuoteForm({ config = {}, services = [], dropdowns = {} }) {
   const { notify } = useToast();
   const [values, setValues] = useState({});
   const [files, setFiles] = useState([]);
@@ -26,9 +45,21 @@ export default function QuoteForm({ config = {}, services = [] }) {
   const [done, setDone] = useState('');
 
   const cfg = config || {};
-  const fields = (cfg.fields && cfg.fields.length ? cfg.fields : DEFAULT_FIELDS).filter((f) => f.visible !== false);
-  const budgets = cfg.budgets || ['أقل من 5,000$', '5,000$ - 10,000$', '10,000$ - 25,000$', 'أكثر من 25,000$'];
-  const timelines = cfg.timelines || ['أقل من شهر', '1 - 3 أشهر', '3 - 6 أشهر', 'أكثر من 6 أشهر'];
+
+  const dd = {
+    projectType: dropdowns.quoteProjectType || {},
+    budget: dropdowns.quoteBudget || {},
+    timeline: dropdowns.quoteTimeline || {},
+    source: dropdowns.quoteSource || {},
+  };
+
+  const projectTypeOptions = dd.projectType.dynamicFromServices === true || !(dd.projectType.options && dd.projectType.options.length)
+    ? [...services.map((s) => s.title), 'أخرى']
+    : dd.projectType.options;
+  const budgetOptions = dd.budget.options && dd.budget.options.length ? dd.budget.options : FALLBACK_BUDGET;
+  const timelineOptions = dd.timeline.options && dd.timeline.options.length ? dd.timeline.options : FALLBACK_TIMELINE;
+  const sourceOptions = dd.source.options && dd.source.options.length ? dd.source.options : FALLBACK_SOURCE;
+
   const allowed = cfg.allowedTypes || ['pdf', 'doc', 'docx', 'png', 'jpg'];
   const maxMb = Number(cfg.maxFileSizeMb) || 10;
 
@@ -77,21 +108,64 @@ export default function QuoteForm({ config = {}, services = [] }) {
     );
   }
 
+  const dropdownProps = (name) => {
+    if (name === 'projectType') {
+      return {
+        options: projectTypeOptions,
+        placeholder: dd.projectType.placeholder || 'ما نوع مشروعك؟...',
+        required: dd.projectType.required === true,
+        showDescriptions: dd.projectType.showDescriptions !== false,
+      };
+    }
+    if (name === 'budget') {
+      return {
+        options: budgetOptions,
+        placeholder: dd.budget.placeholder || 'حدد ميزانيتك التقريبية...',
+        required: dd.budget.required === true,
+        showIcon: dd.budget.showIcon === true,
+        icon: '💰',
+      };
+    }
+    if (name === 'timeline') {
+      return {
+        options: timelineOptions,
+        placeholder: dd.timeline.placeholder || 'متى تحتاج المشروع؟...',
+        required: dd.timeline.required === true,
+        showIcon: dd.timeline.showIcon === true,
+        icon: '⏱️',
+      };
+    }
+    // source / generic select
+    return {
+      options: name === 'source' ? sourceOptions : (dd[name]?.options || []),
+      placeholder: dd[name]?.placeholder || 'اختر...',
+      required: dd[name]?.required === true,
+    };
+  };
+
+  const fields = (cfg.fields && cfg.fields.length ? cfg.fields : DEFAULT_FIELDS)
+    .filter((f) => f.visible !== false)
+    .filter((f) => !(DROPDOWN_TYPES.includes(f.type) && dd[f.name] && dd[f.name].visible === false));
+
   const render = (f) => {
     if (f.type === 'textarea') {
       return <textarea name={f.name} required={f.required} rows={6} value={values[f.name] || ''}
         onChange={(e) => set(f.name, e.target.value)} placeholder="اشرح فكرة مشروعك بالتفصيل…" className="input resize-none" />;
     }
-    if (f.type === 'service' || f.type === 'budget' || f.type === 'timeline' || f.type === 'select') {
-      const opts = f.type === 'service' ? services.map((s) => s.title)
-        : f.type === 'budget' ? budgets
-          : f.type === 'timeline' ? timelines : (f.options || []);
+    if (DROPDOWN_TYPES.includes(f.type)) {
+      const p = dropdownProps(f.name);
       return (
-        <select name={f.name} required={f.required} value={values[f.name] || ''} onChange={(e) => set(f.name, e.target.value)} className="input">
-          <option value="">اختر…</option>
-          {opts.map((o) => <option key={o} value={o}>{o}</option>)}
-          {f.type === 'service' && <option value="أخرى">أخرى</option>}
-        </select>
+        <DropdownField
+          value={values[f.name] || ''}
+          onChange={(v) => set(f.name, v)}
+          options={p.options}
+          placeholder={p.placeholder}
+          required={p.required}
+          showIcon={p.showIcon}
+          icon={p.icon}
+          showDescriptions={p.showDescriptions}
+          name={f.name}
+        />
       );
     }
     if (f.type === 'file') {
