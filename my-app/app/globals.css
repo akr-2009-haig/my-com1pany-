@@ -119,3 +119,10 @@
 @media print {
   .no-print { display: none !important; }
 }
+
+/* Custom dropdown (forms) open animation */
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-6px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-dropdown { animation: dropdownIn .18s ease both; transform-origin: top; }

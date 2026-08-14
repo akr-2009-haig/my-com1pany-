@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MapPin, Clock, Folder, Banknote, CalendarDays } from 'lucide-react';
-import { getJob } from '../../../lib/data';
+import { getJob, getSettings } from '../../../lib/data';
 import PageBanner from '../../../components/shared/PageBanner';
 import ApplicationForm from '../../../components/forms/ApplicationForm';
 import { formatDate } from '../../../utils/formatDate';
@@ -23,7 +23,7 @@ const BLOCKS = [
 ];
 
 export default async function JobPage({ params }) {
-  const res = await getJob(params.slug);
+  const [res, settings] = await Promise.all([getJob(params.slug), getSettings()]);
   if (!res) notFound();
   const { job, others } = res;
   const typeLabel = JOB_TYPES.find((t) => t.value === job.type)?.label || job.type;
@@ -87,7 +87,7 @@ export default async function JobPage({ params }) {
           </article>
 
           <div className="lg:sticky lg:top-28 self-start">
-            <ApplicationForm jobId={job._id} jobTitle={job.title} />
+            <ApplicationForm jobId={job._id} jobTitle={job.title} dropdowns={settings.dropdowns} />
           </div>
         </div>
       </section>

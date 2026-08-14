@@ -8,8 +8,10 @@ import { ADMIN_BASE } from '../../../../utils/constants';
 
 export default function AddJobPage() {
   const [deps, setDeps] = useState([]);
+  const [jobTypes, setJobTypes] = useState(null);
   useEffect(() => {
     api.get('/job-departments', { params: { limit: 0 } }).then((r) => setDeps(r.data?.data || [])).catch(() => {});
+    api.get('/settings').then((r) => setJobTypes(r.data?.dropdowns?.jobTypes || null)).catch(() => {});
   }, []);
 
   return (
@@ -19,7 +21,7 @@ export default function AddJobPage() {
       title="إضافة وظيفة جديدة"
       breadcrumb={[{ label: 'الوظائف', href: `${ADMIN_BASE}/jobs` }, { label: 'إضافة' }]}
       backHref={`${ADMIN_BASE}/jobs`}
-      groups={jobGroups(deps)}
+      groups={jobGroups(deps, jobTypes)}
       defaults={JOB_DEFAULTS}
     />
   );

@@ -10,9 +10,15 @@ import { formatDateShort } from '../../../utils/formatDate';
 
 export default function JobsPage() {
   const [departments, setDepartments] = useState([]);
+  const [jobTypes, setJobTypes] = useState(JOB_TYPES);
   useEffect(() => {
     api.get('/job-departments', { params: { limit: 0 } }).then((r) => setDepartments(r.data?.data || [])).catch(() => {});
+    api.get('/settings').then((r) => {
+      const jt = r.data?.dropdowns?.jobTypes;
+      if (jt && jt.length) setJobTypes(jt);
+    }).catch(() => {});
   }, []);
+  const typeLabel = (v) => (jobTypes.find((t) => t.value === v)?.label) || v;
 
   return (
     <CrudPage
@@ -29,7 +35,7 @@ export default function JobsPage() {
       dragTitle={(r) => r.title}
       filters={[
         { key: 'department', label: 'كل الأقسام', options: departments.map((d) => ({ value: d.name, label: d.name })) },
-        { key: 'type', label: 'كل الأنواع', options: JOB_TYPES },
+        { key: 'type', label: 'كل الأنواع', options: jobTypes },
       ]}
       extraHeaderActions={(
         <Link href={`${ADMIN_BASE}/jobs/applications`} className="btn btn-sm bg-white border border-gray-200 text-gray-700 hover:border-primary hover:text-primary">
@@ -53,7 +59,7 @@ export default function JobsPage() {
           key: 'type',
           label: 'النوع',
           width: '110px',
-          render: (r) => <span className="badge-gray">{JOB_TYPES.find((t) => t.value === r.type)?.label || r.type}</span>,
+          render: (r) => <span className="badge-gray">{typeLabel(r.type)}</span>,
         },
         {
           key: 'applicationsCount',

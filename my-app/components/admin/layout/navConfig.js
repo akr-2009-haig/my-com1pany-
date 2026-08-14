@@ -91,6 +91,7 @@ const NAV = [
     children: [
       { label: 'الوظائف المتاحة', href: `${B}/jobs`, module: 'jobs' },
       { label: 'طلبات التوظيف', href: `${B}/jobs/applications`, module: 'applications' },
+      { label: 'إعدادات نموذج التقديم', href: `${B}/jobs/settings`, module: 'settings' },
       { label: 'ثقافة العمل', href: `${B}/pages/careers`, module: 'pages' },
     ],
   },
@@ -126,6 +127,9 @@ const NAV = [
       { label: 'التنبيهات', href: `${B}/settings/notifications`, module: 'settings' },
       { label: 'زر واتساب', href: `${B}/settings/whatsapp`, module: 'settings' },
       { label: 'اللغات', href: `${B}/settings/languages`, module: 'settings' },
+      { label: 'العملات المتاحة', href: `${B}/settings/currencies`, module: 'settings' },
+      { label: 'أنواع الدوام', href: `${B}/settings/job-types`, module: 'settings' },
+      { label: 'أقسام الشركة', href: `${B}/settings/departments`, module: 'settings' },
       { label: 'الأمان', href: `${B}/settings/security`, module: 'settings' },
       { label: 'وضع الصيانة', href: `${B}/settings/maintenance`, module: 'settings' },
     ],

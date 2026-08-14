@@ -21,7 +21,7 @@ export default function ApplicationsPage() {
       title="طلبات التوظيف"
       subtitle="السير الذاتية المقدَّمة على الوظائف المعلنة"
       breadcrumb={[{ label: 'الوظائف', href: `${ADMIN_BASE}/jobs` }, { label: 'طلبات التوظيف' }]}
-      searchPlaceholder="بحث بالاسم أو البريد أو الوظيفة..."
+      searchPlaceholder="بحث بالاسم أو البريد أو الوظيفة أو المصدر أو الخبرة..."
       emptyText="لا توجد طلبات توظيف"
       statusOptions={[
         { value: 'new', label: 'جديد' },
@@ -47,6 +47,8 @@ export default function ApplicationsPage() {
           ),
         },
         { key: 'jobTitle', label: 'الوظيفة', render: (r) => <span className="badge-blue">{r.jobTitle || '—'}</span> },
+        { key: 'experience', label: 'الخبرة', width: '130px', render: (r) => (r.experience ? <span className="text-gray-600 text-xs">{r.experience}</span> : <span className="text-gray-300">—</span>) },
+        { key: 'source', label: 'المصدر', width: '140px', render: (r) => (r.source ? <span className="text-gray-600 text-xs">{r.source}</span> : <span className="text-gray-300">—</span>) },
         { key: 'phone', label: 'الهاتف', width: '130px', render: (r) => <span dir="ltr" className="text-xs text-gray-600">{r.phone || '—'}</span> },
         {
           key: 'resume',
@@ -65,6 +67,8 @@ export default function ApplicationsPage() {
               { label: 'البريد الإلكتروني', value: d.email, dir: 'ltr' },
               { label: 'رقم الهاتف', value: d.phone || '—', dir: 'ltr' },
               { label: 'الوظيفة', value: d.jobTitle || '—' },
+              { label: 'مصدر معرفتك بالوظيفة', value: d.source || '—' },
+              { label: 'سنوات الخبرة', value: d.experience || '—' },
               { label: 'رابط أعمال / بورتفوليو', value: d.portfolioUrl || '—', dir: 'ltr', full: true },
               { label: 'الرسالة التعريفية', value: d.coverLetter || '—', full: true, pre: true },
               { label: 'تاريخ التقديم', value: formatDate(d.createdAt, { withTime: true }) },

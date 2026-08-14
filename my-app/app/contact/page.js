@@ -13,6 +13,11 @@ export default async function ContactPage() {
     getSettings(), getPage('contact'), getServices({ limit: 0 }), getBanner('contact'),
   ]);
   const cfg = page?.data || {};
+  const settingsDD = settings.dropdowns || {};
+  const dropdowns = {
+    contactService: cfg.contactService || settingsDD.contactService,
+    contactSubject: cfg.contactSubject || settingsDD.contactSubject,
+  };
 
   const boxes = [
     { Icon: MapPin, label: 'العنوان', lines: [settings.address].filter(Boolean) },
@@ -51,7 +56,7 @@ export default async function ContactPage() {
             <div className="card p-6 md:p-8">
               <h2 className="text-2xl font-bold text-dark mb-1.5">أرسل لنا رسالة</h2>
               <p className="text-gray-400 text-sm mb-7">سنعاود التواصل معك خلال يوم عمل واحد.</p>
-              <ContactForm config={cfg} services={services} />
+              <ContactForm config={cfg} services={services} dropdowns={dropdowns} />
             </div>
 
             <div className="space-y-6">

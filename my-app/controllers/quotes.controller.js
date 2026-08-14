@@ -7,13 +7,14 @@ const emitEvent = require('../events/emitEvent');
 
 const base = crud('quotes', {
   event: 'quotes:updated',
-  searchFields: ['name', 'email', 'company', 'projectType'],
+  searchFields: ['name', 'email', 'company', 'projectType', 'source'],
   filters: ['status', { key: 'isRead', cast: 'boolean' }],
   defaultSort: { createdAt: -1 },
   exportColumns: [
     { key: 'name', label: 'الاسم' }, { key: 'company', label: 'الشركة' }, { key: 'email', label: 'البريد' },
     { key: 'phone', label: 'الهاتف' }, { key: 'projectType', label: 'نوع المشروع' },
     { key: 'budget', label: 'الميزانية' }, { key: 'timeline', label: 'الجدول الزمني' },
+    { key: 'source', label: 'كيف سمعت عنا' },
     { key: 'status', label: 'الحالة' }, { key: 'createdAt', label: 'التاريخ' },
   ],
 });
@@ -36,6 +37,7 @@ base.submit = async (req, res, next) => {
       projectType: cleanText(b.projectType, 120),
       budget: cleanText(b.budget, 60),
       timeline: cleanText(b.timeline, 60),
+      source: cleanText(b.source, 120),
       description: cleanText(b.description, 6000),
       attachments,
       ip: clientIp(req),

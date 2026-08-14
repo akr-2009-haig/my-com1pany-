@@ -6,7 +6,15 @@ export const PACKAGE_DEFAULTS = {
   buttonText: 'اطلب الآن', buttonLink: '', order: 0,
 };
 
-export const PACKAGE_GROUPS = [
+/** currency options come from settings (admin-managed). Falls back to CURRENCIES. */
+export function packageCurrencyOptions(currencies = null) {
+  if (currencies && currencies.length) {
+    return currencies.map((c) => ({ value: c.code || c.label, label: `${c.symbol || ''} ${c.label} (${c.code || ''})`.trim() }));
+  }
+  return CURRENCIES;
+}
+
+export const packageGroups = (currencies = null) => [
   {
     label: 'بيانات الباقة',
     fields: [
@@ -15,7 +23,7 @@ export const PACKAGE_GROUPS = [
       { name: 'description', label: 'وصف مختصر', type: 'textarea', rows: 3, cols: 2 },
       { name: 'monthlyPrice', label: 'السعر الشهري', type: 'number', min: 0 },
       { name: 'yearlyPrice', label: 'السعر السنوي', type: 'number', min: 0 },
-      { name: 'currency', label: 'العملة', type: 'select', options: CURRENCIES },
+      { name: 'currency', label: 'العملة', type: 'select', options: packageCurrencyOptions(currencies) },
       { name: 'order', label: 'الترتيب', type: 'number', min: 0 },
       { name: 'isPopular', label: 'الأكثر طلباً (مميزة)', type: 'toggle' },
       { name: 'isActive', label: 'مفعّلة', type: 'toggle', default: true },
